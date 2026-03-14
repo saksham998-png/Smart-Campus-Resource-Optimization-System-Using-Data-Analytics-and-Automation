@@ -9,6 +9,7 @@ data = pd.read_excel("smart_campus_200_row_dataset.xlsx")
 
 # ── Analysis ──────────────────────────────────────────────
 electricity_per_building = data.groupby("Building")["Electricity_Units"].sum().to_dict()
+water_per_building = data.groupby("Building")["Water_Usage_Liters"].sum().to_dict()
 
 data["Utilization_Percentage"] = (data["Rooms_Used"] / data["Total_Rooms"]) * 100
 avg_utilization = data.groupby("Building")["Utilization_Percentage"].mean().round(2).to_dict()
@@ -29,6 +30,7 @@ buildings = list(electricity_per_building.keys())
 analysis_result = {
     "buildings":              buildings,
     "electricity":            [electricity_per_building[b] for b in buildings],
+    "water": [water_per_building[b] for b in buildings],
     "utilization":            [avg_utilization[b] for b in buildings],
     "highest_usage_building": highest_elec_building,
     "suggestions":            suggestions,

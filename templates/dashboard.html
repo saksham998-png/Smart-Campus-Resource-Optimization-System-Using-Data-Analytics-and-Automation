@@ -114,7 +114,7 @@
     /* ── KPI Cards — 3 columns now ── */
     .kpi-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 14px;
       margin-bottom: 24px;
     }
@@ -133,6 +133,7 @@
     .kpi-card.c-green::after  { background: linear-gradient(90deg, var(--green), transparent); }
     .kpi-card.c-orange::after { background: linear-gradient(90deg, var(--orange), transparent); }
     .kpi-card.c-red::after    { background: linear-gradient(90deg, var(--red), transparent); }
+    .kpi-card.c-blue::after { background: linear-gradient(90deg, var(--blue), transparent); }
 
     .kpi-icon { font-size: 22px; margin-bottom: 10px; }
     .kpi-label {
@@ -263,6 +264,12 @@
       <div class="kpi-value" id="kpiElec">—</div>
       <div class="kpi-sub">units consumed</div>
     </div>
+    <div class="kpi-card c-blue">
+      <div class="kpi-icon">💧</div>
+      <div class="kpi-label">Total Electricity</div>
+      <div class="kpi-value" id="kpiWater">—</div>
+      <div class="kpi-sub">liters consumed</div>
+    </div>
     <div class="kpi-card c-orange">
       <div class="kpi-icon">🏫</div>
       <div class="kpi-label">Avg Utilization</div>
@@ -279,7 +286,7 @@
 
   <!-- Charts — electricity half width, utilization full width -->
   <div class="charts-grid">
-    <div class="chart-card full">
+    <div class="chart-card">
       <div class="chart-hdr">
         <div class="chart-title">⚡ Electricity Usage per Building</div>
         <span class="chart-tag tag-g">Units</span>
@@ -287,20 +294,30 @@
       <canvas id="elecChart"></canvas>
     </div>
 
-    <div class="chart-card full">
+    <div class="chart-card">
       <div class="chart-hdr">
         <div class="chart-title">🏫 Classroom Utilization</div>
         <span class="chart-tag tag-o">% Occupied</span>
       </div>
       <canvas id="utilChart"></canvas>
     </div>
+
+    <div class="chart-card">
+      <div class="chart-hdr">
+        <div class="chart-title">💧 Water Usage Overview</div>
+        <span class="chart-tag tag-g">Liters</span>
+      </div>
+      <canvas id="waterChart"></canvas>
+    </div>
+
+    <!-- Suggestions -->
+    <div class="sug-card">
+      <div class="sug-title">💡 Smart Suggestions</div>
+      <div id="sugList"></div>
+    </div>
   </div>
 
-  <!-- Suggestions -->
-  <div class="sug-card">
-    <div class="sug-title">💡 Smart Suggestions</div>
-    <div id="sugList"></div>
-  </div>
+  
 </main>
 
 <!-- Loading -->
@@ -354,10 +371,12 @@
       // KPI
       const totalElec = d.electricity.reduce((a, b) => a + b, 0);
       const avgUtil   = (d.utilization.reduce((a, b) => a + b, 0) / d.utilization.length).toFixed(1);
+      const totalWater = d.water.reduce((a, b) => a + b, 0);
 
       document.getElementById('kpiElec').textContent    = totalElec.toLocaleString();
       document.getElementById('kpiUtil').textContent    = avgUtil + '%';
       document.getElementById('kpiHighest').textContent = d.highest_usage_building;
+      document.getElementById('kpiWater').textContent = totalWater.toLocaleString();
 
       // Electricity bar
       const ec = document.getElementById('elecChart').getContext('2d');
@@ -395,6 +414,23 @@
         },
         options: baseOpts()
       });
+
+      const wc = document.getElementById('waterChart').getContext('2d');
+
+new Chart(wc, {
+  type: 'bar',
+  data: {
+    labels: B,
+    datasets: [{
+      data: d.water,
+      backgroundColor: grad(wc, '#4f8ef7'),
+      borderColor: '#4f8ef7',
+      borderWidth: 2,
+      borderRadius: 8
+    }]
+  },
+  options: baseOpts()
+});
 
       // Suggestions — skip water-related ones
       const list = document.getElementById('sugList');
