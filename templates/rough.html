@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Smart Campus — Electricity Analytics</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:#0a0f1e;
+  --surf:rgba(255,255,255,0.03);
+  --border:rgba(255,255,255,0.07);
+  --green:#00c896;
+  --blue:#4f8ef7;
+  --orange:#ff9a3c;
+  --red:#ff6b6b;
+  --text:#e8edf8;
+  --muted:rgba(255,255,255,0.35);
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'DM Sans',sans-serif;
+}
+
+/* SIDEBAR */
+
+.sidebar{
+  position:fixed;
+  left:0;
+  top:0;
+  bottom:0;
+  width:250px;
+  background:rgba(255,255,255,0.02);
+  border-right:1px solid var(--border);
+  padding:28px 18px;
+  display:flex;
+  flex-direction:column;
+}
+
+.brand{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  margin-bottom:36px;
+}
+
+.brand-icon{
+  width:38px;
+  height:38px;
+  background:linear-gradient(135deg,var(--green),var(--blue));
+  border-radius:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.brand-name{
+  font-family:'Syne';
+  font-weight:800;
+}
+
+.nav-label{
+  font-size:0.65rem;
+  color:var(--muted);
+  margin-bottom:8px;
+}
+
+.nav-item{
+  display:flex;
+  gap:10px;
+  padding:9px 12px;
+  border-radius:10px;
+  color:var(--muted);
+  text-decoration:none;
+  margin-bottom:4px;
+}
+
+.nav-item.active{
+  background:rgba(0,200,150,0.1);
+  color:var(--green);
+}
+
+.nav-item:hover{
+  background:rgba(255,255,255,0.05);
+}
+
+.sidebar-footer{
+  margin-top:auto;
+  border-top:1px solid var(--border);
+  padding-top:18px;
+}
+
+/* MAIN */
+
+.main{
+  margin-left:230px;
+  padding:30px 32px;
+}
+
+.page-title{
+  font-family:'Syne';
+  font-size:1.5rem;
+  font-weight:800;
+}
+
+.page-sub{
+  color:var(--muted);
+  font-size:0.8rem;
+  margin-top:4px;
+}
+
+/* KPI */
+
+.kpi-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+  margin:24px 0;
+}
+
+.kpi-card{
+  background:var(--surf);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:20px;
+}
+
+.kpi-label{
+  font-size:0.7rem;
+  color:var(--muted);
+}
+
+.kpi-value{
+  font-size:1.4rem;
+  font-family:'Syne';
+  margin-top:6px;
+}
+
+/* CHARTS */
+
+.charts-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+}
+
+.chart-card{
+  background:var(--surf);
+  border:1px solid var(--border);
+  border-radius:18px;
+  padding:20px;
+}
+
+.chart-card.full{
+  grid-column:1 / -1;
+}
+
+canvas{
+  max-height:260px;
+}
+
+/* LOADING */
+
+#loadingState{
+  margin-left:230px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:80vh;
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- Sidebar -->
+
+<aside class="sidebar">
+
+<div class="brand">
+<div class="brand-icon">🏛️</div>
+<div class="brand-name">SmartCampus</div>
+</div>
+
+<div class="nav-label">Analytics</div>
+
+<a href="/dashboard" class="nav-item">📊 Dashboard</a>
+<a href="/electricity" class="nav-item active">⚡ Electricity</a>
+<a href="/water" class="nav-item">💧 Water</a>
+<a href="/classrooms" class="nav-item">🏫 Classrooms</a>
+
+<div class="nav-label" style="margin-top:18px;">Reports</div>
+<a href="/suggestions" class="nav-item">💡 Suggestions</a>
+
+<div class="sidebar-footer">
+<a href="/logout" class="nav-item">🚪 Logout</a>
+</div>
+
+</aside>
+
+<!-- MAIN -->
+
+<main class="main" id="mainContent" style="display:none">
+
+<div class="page-title">Electricity Analytics</div>
+<div class="page-sub">Detailed energy consumption insights</div>
+
+<div class="kpi-grid">
+
+<div class="kpi-card">
+<div class="kpi-label">Total Electricity</div>
+<div class="kpi-value" id="kpiTotal">—</div>
+</div>
+
+<div class="kpi-card">
+<div class="kpi-label">Average Usage</div>
+<div class="kpi-value" id="kpiAvg">—</div>
+</div>
+
+<div class="kpi-card">
+<div class="kpi-label">Highest Usage</div>
+<div class="kpi-value" id="kpiHigh">—</div>
+</div>
+
+<div class="kpi-card">
+<div class="kpi-label">Most Efficient</div>
+<div class="kpi-value" id="kpiLow">—</div>
+</div>
+
+</div>
+
+<div class="charts-grid">
+
+<div class="chart-card">
+<h3>Electricity Usage per Building</h3>
+<canvas id="barChart"></canvas>
+</div>
+
+<div class="chart-card">
+<h3>Electricity Distribution</h3>
+<canvas id="pieChart"></canvas>
+</div>
+
+<div class="chart-card full">
+<h3>Daily Electricity Trend</h3>
+<canvas id="trendChart"></canvas>
+</div>
+
+</div>
+
+</main>
+
+<div id="loadingState">
+Loading electricity analytics...
+</div>
+
+<script>
+
+fetch('/api/electricity-data')
+.then(res => res.json())
+.then(data => {
+
+document.getElementById("loadingState").style.display="none"
+document.getElementById("mainContent").style.display="block"
+
+document.getElementById("kpiTotal").textContent=data.total_electricity
+document.getElementById("kpiAvg").textContent=data.average_electricity
+document.getElementById("kpiHigh").textContent=data.highest_usage_building
+document.getElementById("kpiLow").textContent=data.most_efficient_building
+
+const buildings=Object.keys(data.building_usage)
+const values=Object.values(data.building_usage)
+
+// BAR
+
+new Chart(document.getElementById("barChart"),{
+type:"bar",
+data:{
+labels:buildings,
+datasets:[{
+data:values,
+backgroundColor:"#00c896"
+}]
+}
+})
+
+// PIE
+
+new Chart(document.getElementById("pieChart"),{
+type:"pie",
+data:{
+labels:buildings,
+datasets:[{
+data:values,
+backgroundColor:["#00c896","#4f8ef7","#ff9a3c","#ff6b6b"]
+}]
+}
+})
+
+// TREND
+
+const dates=Object.keys(data.daily_trend)
+const trend=Object.values(data.daily_trend)
+
+new Chart(document.getElementById("trendChart"),{
+type:"line",
+data:{
+labels:dates,
+datasets:[{
+data:trend,
+borderColor:"#00c896",
+fill:false
+}]
+}
+})
+
+})
+
+</script>
+
+</body>
+</html>  

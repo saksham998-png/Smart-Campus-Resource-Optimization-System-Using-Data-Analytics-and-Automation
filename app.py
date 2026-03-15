@@ -11,6 +11,17 @@ data = pd.read_excel("smart_campus_200_row_dataset.xlsx")
 electricity_per_building = data.groupby("Building")["Electricity_Units"].sum().to_dict()
 water_per_building = data.groupby("Building")["Water_Usage_Liters"].sum().to_dict()
 
+# Electricity specific analytics
+total_electricity = int(data["Electricity_Units"].sum())
+avg_electricity = float(round(data["Electricity_Units"].mean(), 2))
+
+highest_elec_building = max(electricity_per_building, key=electricity_per_building.get)
+lowest_elec_building = min(electricity_per_building, key=electricity_per_building.get)
+
+# Daily electricity trend
+daily_electricity = data.groupby("Date")["Electricity_Units"].sum().to_dict()
+
+
 data["Utilization_Percentage"] = (data["Rooms_Used"] / data["Total_Rooms"]) * 100
 avg_utilization = data.groupby("Building")["Utilization_Percentage"].mean().round(2).to_dict()
 
@@ -62,6 +73,28 @@ def dashboard():
 def get_data():
     return jsonify(analysis_result)
 
+@app.route("/api/electricity-data")
+def electricity_data():
+
+    building_usage = {k: int(v) for k, v in electricity_per_building.items()}
+    trend = {str(k): int(v) for k, v in daily_electricity.items()}
+    
+    insights = [
+    f"{highest_elec_building} has the highest electricity consumption.",
+    f"{lowest_elec_building} is currently the most energy efficient building.",
+    "Consider shifting heavy electrical loads to off-peak hours.",
+    "Switching to LED lighting can significantly reduce energy usage."
+]
+
+    return jsonify({
+        "total_electricity": total_electricity,
+        "average_electricity": avg_electricity,
+        "highest_usage_building": highest_elec_building,
+        "most_efficient_building": lowest_elec_building,
+        "building_usage": building_usage,
+        "daily_trend": trend,
+        "insights": insights
+    })
 
 @app.route("/logout")
 def logout():

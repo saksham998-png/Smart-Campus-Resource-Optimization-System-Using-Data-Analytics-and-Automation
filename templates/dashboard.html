@@ -240,7 +240,7 @@
   <div class="nav-label">Analytics</div>
   <a href="/dashboard" class="nav-item {% if active == 'dashboard' %}active{% endif %}">📊 Dashboard</a>
   <a href="/electricity" class="nav-item {% if active == 'electricity' %}active{% endif %}">⚡ Electricity</a>
-  <a href="/water" class="nav-item {% if active == 'electricity' %}active{% endif %}">💧 Water</a>
+  <a href="/water" class="nav-item {% if active == 'water' %}active{% endif %}">💧 Water</a>
   <a href="/classrooms" class="nav-item {% if active == 'classrooms' %}active{% endif %}">🏫 Classrooms</a>
   <div class="nav-label" style="margin-top:18px;">Reports</div>
   <a href="/suggestions" class="nav-item {% if active == 'suggestions' %}active{% endif %}">💡 Suggestions</a>
@@ -259,7 +259,7 @@
     <div class="live-badge"><div class="live-dot"></div> Live Data</div>
   </div>
 
-  <!-- KPI — 3 cards -->
+  <!-- KPI — 4 cards -->
   <div class="kpi-grid">
     <div class="kpi-card c-green">
       <div class="kpi-icon">⚡</div>
@@ -269,7 +269,7 @@
     </div>
     <div class="kpi-card c-blue">
       <div class="kpi-icon">💧</div>
-      <div class="kpi-label">Total Electricity</div>
+      <div class="kpi-label">Total Water</div>
       <div class="kpi-value" id="kpiWater">—</div>
       <div class="kpi-sub">liters consumed</div>
     </div>

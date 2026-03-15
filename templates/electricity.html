@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Campus — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #0a0f1e;
+      --surf:   rgba(255,255,255,0.03);
+      --border: rgba(255,255,255,0.07);
+      --green:  #00c896;
+      --blue:   #4f8ef7;
+      --orange: #ff9a3c;
+      --red:    #ff6b6b;
+      --text:   #e8edf8;
+      --muted:  rgba(255,255,255,0.35);
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: fixed;
+      left: 0; top: 0; bottom: 0;
+      width: 250px;
+      background: rgba(255,255,255,0.02);
+      border-right: 1px solid var(--border);
+      padding: 28px 18px;
+      display: flex; flex-direction: column;
+      z-index: 100;
+    }
+
+    .brand {
+      display: flex; align-items: center; gap: 11px;
+      margin-bottom: 36px;
+    }
+    .brand-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--green), var(--blue));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; flex-shrink: 0;
+    }
+    .brand-name {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 0.95rem; color: #fff; line-height: 1.2;
+    }
+    .brand-name span {
+      display: block; font-weight: 400; font-size: 0.68rem;
+      color: var(--muted); font-family: 'DM Sans', sans-serif;
+    }
+
+    .nav-label {
+      font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 8px; padding-left: 4px;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 10px;
+      font-size: 0.85rem; color: var(--muted);
+      cursor: pointer; margin-bottom: 3px;
+      text-decoration: none;
+    }
+    .nav-item.active { background: rgba(0,200,150,0.1); color: var(--green); }
+    .nav-item:hover {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      border-top: 1px solid var(--border);
+      padding-top: 18px;
+    }
+    .logout-btn {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 10px;
+      font-size: 0.85rem; color: var(--red);
+      text-decoration: none; transition: background 0.2s;
+    }
+    .logout-btn:hover { background: rgba(255,107,107,0.08); }
+
+    /* ── Main ── */
+    .main { margin-left: 230px; padding: 30px 32px; }
+
+    .topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 28px;
+    }
+    .page-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800; font-size: 1.5rem; color: #fff;
+    }
+    .page-sub { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+
+    .live-badge {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(0,200,150,0.08);
+      border: 1px solid rgba(0,200,150,0.2);
+      border-radius: 20px; padding: 6px 14px;
+      font-size: 0.78rem; color: var(--green);
+    }
+    .live-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--green); animation: pulse 2s infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    /* ── KPI Cards — 3 columns now ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .kpi-card {
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 18px;
+      position: relative; overflow: hidden;
+      animation: fadeUp 0.5s ease both;
+    }
+    .kpi-card::after {
+      content: ''; position: absolute;
+      top: 0; left: 0; right: 0; height: 2px;
+    }
+    .kpi-card.c-green::after  { background: linear-gradient(90deg, var(--green), transparent); }
+    .kpi-card.c-orange::after { background: linear-gradient(90deg, var(--orange), transparent); }
+    .kpi-card.c-red::after    { background: linear-gradient(90deg, var(--red), transparent); }
+    .kpi-card.c-blue::after { background: linear-gradient(90deg, var(--blue), transparent); }
+
+    .kpi-icon { font-size: 22px; margin-bottom: 10px; }
+    .kpi-label {
+      font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 5px;
+    }
+    .kpi-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.5rem; font-weight: 700; color: #fff;
+    }
+    .kpi-sub { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
+
+    /* ── Charts ── */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+    .chart-card {
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px;
+      animation: fadeUp 0.5s ease both;
+    }
+    .chart-card.full { grid-column: 1 / -1; }
+
+    .chart-hdr {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .chart-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: 0.95rem; color: #fff;
+    }
+    .chart-tag {
+      font-size: 0.7rem; padding: 3px 10px;
+      border-radius: 20px; font-weight: 500;
+    }
+    .tag-g { background: rgba(0,200,150,0.1);  color: var(--green); }
+    .tag-o { background: rgba(255,154,60,0.1); color: var(--orange); }
+
+    .full {
+      grid-column: 1 / -1;
+    }
+
+    canvas { max-height: 240px; }
+
+    /* ── Suggestions ── */
+    .sug-card {
+      background: var(--surf);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px;
+      animation: fadeUp 0.5s ease both;
+    }
+    .sug-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: 0.95rem; color: #fff;
+      margin-bottom: 14px;
+    }
+    .sug-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-bottom: 8px;
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.7);
+      line-height: 1.5;
+      transition: border-color 0.2s;
+    }
+    .sug-item:hover { border-color: rgba(0,200,150,0.25); }
+    .sug-item:last-child { margin-bottom: 0; }
+
+    /* ── Loading ── */
+    #loadingState {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 80vh; gap: 14px;
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--green);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin  { to { transform: rotate(360deg); } }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-icon">🏛️</div>
+    <div class="brand-name">SmartCampus<span>Admin Panel</span></div>
+  </div>
+
+  <div class="nav-label">Analytics</div>
+  <a href="/dashboard" class="nav-item {% if active == 'dashboard' %}active{% endif %}">📊 Dashboard</a>
+  <a href="/electricity" class="nav-item {% if active == 'electricity' %}active{% endif %}">⚡ Electricity</a>
+  <a href="/water" class="nav-item {% if active == 'water' %}active{% endif %}">💧 Water</a>
+  <a href="/classrooms" class="nav-item {% if active == 'classrooms' %}active{% endif %}">🏫 Classrooms</a>
+  <div class="nav-label" style="margin-top:18px;">Reports</div>
+  <a href="/suggestions" class="nav-item {% if active == 'suggestions' %}active{% endif %}">💡 Suggestions</a>
+  <div class="sidebar-footer">
+    <a href="/logout" class="logout-btn">🚪 &nbsp;Logout</a>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main" id="mainContent" style="display:none">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Electricity Analytics</div>
+<div class="page-sub">Detailed analysis of campus energy usage</div>
+    </div>
+    <div class="live-badge"><div class="live-dot"></div> Live Data</div>
+  </div>
+
+  <!-- KPI — Electricity Analytics -->
+<div class="kpi-grid">
+  <div class="kpi-card c-green">
+    <div class="kpi-icon">⚡</div>
+    <div class="kpi-label">Total Electricity</div>
+    <div class="kpi-value" id="kpiTotalElec">—</div>
+    <div class="kpi-sub">total units consumed</div>
+  </div>
+
+  <div class="kpi-card c-blue">
+    <div class="kpi-icon">📊</div>
+    <div class="kpi-label">Average Usage</div>
+    <div class="kpi-value" id="kpiAvgElec">—</div>
+    <div class="kpi-sub">avg units per record</div>
+  </div>
+
+  <div class="kpi-card c-orange">
+    <div class="kpi-icon">🏢</div>
+    <div class="kpi-label">Highest Usage</div>
+    <div class="kpi-value" id="kpiHighElec">—</div>
+    <div class="kpi-sub">highest consuming block</div>
+  </div>
+
+  <div class="kpi-card c-red">
+    <div class="kpi-icon">🌱</div>
+    <div class="kpi-label">Most Efficient</div>
+    <div class="kpi-value" id="kpiLowElec">—</div>
+    <div class="kpi-sub">lowest electricity usage</div>
+  </div>
+</div>
+
+  <!-- Charts — electricity half width, utilization full width -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-hdr">
+        <div class="chart-title">⚡ Electricity Usage per Building</div>
+        <span class="chart-tag tag-g">Units</span>
+      </div>
+      <canvas id="elecChart"></canvas>
+    </div>
+
+    <div class="chart-card">
+      <div class="chart-hdr">
+        <div class="chart-title">Electricity Distribution</div>
+        <span class="chart-tag tag-o">% Occupied</span>
+      </div>
+      <canvas id="pieChart"></canvas>
+    </div>
+
+    <div class="chart-card full">
+      <div class="chart-hdr">
+        <div class="chart-title">Energy Efficient Trends</div>
+        <span class="chart-tag tag-g">Units</span>
+      </div>
+      <canvas id="trendChart"></canvas>
+    </div>
+
+    <!-- Suggestions -->
+    <div class="sug-card full">
+      <div class="sug-title">💡 Efficiency Insights</div>
+      <div id="insightList"></div>
+    </div>
+  </div>
+
+  
+</main>
+
+<!-- Loading -->
+<div id="loadingState" style="margin-left:230px">
+  <div class="spinner"></div>
+  <div style="color:var(--muted);font-size:0.82rem">Loading campus data…</div>
+</div>
+
+<script>
+  const C = { green: '#00c896', orange: '#ff9a3c' };
+
+  function grad(ctx, hex) {
+    const g = ctx.createLinearGradient(0, 0, 0, 240);
+    g.addColorStop(0, hex + 'bb');
+    g.addColorStop(1, hex + '11');
+    return g;
+  }
+
+  const baseOpts = () => ({
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: '#1a2035',
+        padding: 10,
+        cornerRadius: 8,
+        titleFont: { family: 'DM Sans' },
+        bodyFont:  { family: 'DM Sans' },
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        ticks: { color: 'rgba(255,255,255,0.4)', font: { family: 'DM Sans', size: 12 } }
+      },
+      y: {
+        grid: { color: 'rgba(255,255,255,0.04)' },
+        ticks: { color: 'rgba(255,255,255,0.4)', font: { family: 'DM Sans', size: 12 } }
+      }
+    }
+  });
+
+  fetch('/api/electricity-data')
+    .then(r => r.json())
+    .then(d => {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('mainContent').style.display  = 'block';
+      const insightBox = document.getElementById("insightList");
+
+d.insights.forEach(text=>{
+  const div=document.createElement("div");
+  div.className="sug-item";
+  div.textContent=text;
+  insightBox.appendChild(div);
+});
+
+      const B = d.buildings;
+
+      // KPI (Electricity Page)
+
+document.getElementById('kpiTotalElec').textContent =
+  d.total_electricity.toLocaleString();
+
+document.getElementById('kpiAvgElec').textContent =
+  d.average_electricity;
+
+document.getElementById('kpiHighElec').textContent =
+  d.highest_usage_building;
+
+document.getElementById('kpiLowElec').textContent =
+  d.most_efficient_building;
+
+      const buildings = Object.keys(d.building_usage);
+const values = Object.values(d.building_usage);
+
+const ec = document.getElementById('elecChart').getContext('2d');
+
+new Chart(ec, {
+  type: 'bar',
+  data: {
+    labels: buildings,
+    datasets: [{
+      data: values,
+      backgroundColor: grad(ec, C.green),
+      borderColor: C.green,
+      borderWidth: 2,
+      borderRadius: 8
+    }]
+  },
+  options: baseOpts()
+});
+
+      const pc = document.getElementById('pieChart').getContext('2d');
+
+new Chart(pc,{
+  type:'pie',
+  data:{
+    labels:buildings,
+    datasets:[{
+      data:values,
+      backgroundColor:[
+        "#ffe46b",  // teal
+        "#7acddb",  // blue
+        "#f883bd",  // orange
+        "#835bbe"   // purple
+      ],
+      borderColor:[
+    "#e2ae01",    // brighter red
+    "#005cb3",    // bright blue
+    "#d6006b",    // bright orange
+    "#7149ac"     // bright purple
+  ],
+      borderWidth:2,
+      hoverOffset:10
+    }]
+  },
+  options:{
+    plugins:{
+      legend:{
+        labels:{
+          color:"rgba(255,255,255,0.7)",
+          font:{family:"DM Sans"}
+        }
+      },
+      tooltip:{
+        callbacks:{
+          label:function(context){
+            const total=context.dataset.data.reduce((a,b)=>a+b,0)
+            const value=context.raw
+            const percent=((value/total)*100).toFixed(1)
+            return percent+"%"
+          }
+        }
+      }
+    }
+  }
+});
+      
+      const dates = Object.keys(d.daily_trend);
+const valuesTrend = Object.values(d.daily_trend);
+
+// group into weeks
+const weeks = ["Week 1","Week 2","Week 3","Week 4"];
+const weeklyData = [];
+
+const chunk = Math.ceil(valuesTrend.length / 4);
+
+for(let i=0;i<4;i++){
+  const start=i*chunk;
+  const end=start+chunk;
+
+  const weekValues=valuesTrend.slice(start,end);
+  const avg=weekValues.reduce((a,b)=>a+b,0)/weekValues.length;
+
+  weeklyData.push(Math.round(avg));
+}
+
+const tc = document.getElementById('trendChart').getContext('2d');
+
+new Chart(tc,{
+  type:'line',
+  data:{
+    labels:weeks,
+    datasets:[{
+      data:weeklyData,
+      borderColor:"#e7a5a5",
+      backgroundColor:grad(tc,"#ec7c7c"),
+      borderWidth:3,
+      pointBackgroundColor:"#f0b7b7",
+      pointRadius:5,
+      tension:0.4,
+      fill:true
+    }]
+  },
+  options:baseOpts()
+});
+      // Suggestions — skip water-related ones
+      const list = document.getElementById('sugList');
+      const filtered = d.suggestions.filter(s => !s.includes('💧'));
+      filtered.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'sug-item';
+        div.textContent = s;
+        list.appendChild(div);
+      });
+    })
+    .catch(() => {
+      document.getElementById('loadingState').innerHTML =
+        '<div style="color:#ff6b6b">⚠️ Failed to load data. Please refresh.</div>';
+    });
+</script>
+</body>
+</html>
+ 
