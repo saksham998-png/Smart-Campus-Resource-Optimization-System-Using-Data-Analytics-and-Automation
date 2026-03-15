@@ -32,7 +32,7 @@
     .sidebar {
       position: fixed;
       left: 0; top: 0; bottom: 0;
-      width: 230px;
+      width: 250px;
       background: rgba(255,255,255,0.02);
       border-right: 1px solid var(--border);
       padding: 28px 18px;
@@ -68,9 +68,13 @@
       display: flex; align-items: center; gap: 10px;
       padding: 9px 12px; border-radius: 10px;
       font-size: 0.85rem; color: var(--muted);
-      cursor: default; margin-bottom: 3px;
+      cursor: pointer; margin-bottom: 3px;
+      text-decoration: none;
     }
     .nav-item.active { background: rgba(0,200,150,0.1); color: var(--green); }
+    .nav-item:hover {
+      background: rgba(255,255,255,0.05);
+    }
 
     .sidebar-footer {
       margin-top: auto;
@@ -234,13 +238,12 @@
   </div>
 
   <div class="nav-label">Analytics</div>
-  <div class="nav-item active">📊 &nbsp;Dashboard</div>
-  <div class="nav-item">⚡ &nbsp;Electricity</div>
-  <div class="nav-item">🏫 &nbsp;Classrooms</div>
-
+  <a href="/dashboard" class="nav-item {% if active == 'dashboard' %}active{% endif %}">📊 Dashboard</a>
+  <a href="/electricity" class="nav-item {% if active == 'electricity' %}active{% endif %}">⚡ Electricity</a>
+  <a href="/water" class="nav-item {% if active == 'electricity' %}active{% endif %}">💧 Water</a>
+  <a href="/classrooms" class="nav-item {% if active == 'classrooms' %}active{% endif %}">🏫 Classrooms</a>
   <div class="nav-label" style="margin-top:18px;">Reports</div>
-  <div class="nav-item">💡 &nbsp;Suggestions</div>
-
+  <a href="/suggestions" class="nav-item {% if active == 'suggestions' %}active{% endif %}">💡 Suggestions</a>
   <div class="sidebar-footer">
     <a href="/logout" class="logout-btn">🚪 &nbsp;Logout</a>
   </div>
@@ -449,3 +452,4 @@ new Chart(wc, {
 </script>
 </body>
 </html>
+ 

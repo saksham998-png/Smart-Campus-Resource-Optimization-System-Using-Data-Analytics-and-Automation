@@ -55,7 +55,7 @@ def login():
 def dashboard():
     if not session.get("logged_in"):
         return redirect(url_for("login"))
-    return render_template("dashboard.html")
+    return render_template("dashboard.html", active="dashboard")
 
 
 @app.route("/api/data")
@@ -67,6 +67,30 @@ def get_data():
 def logout():
     session.clear()
     return redirect(url_for("login"))
+
+@app.route("/electricity")
+def electricity():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+    return render_template("electricity.html", active="electricity")
+
+@app.route("/water")
+def water():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+    return render_template("water.html", active="water")
+
+@app.route("/classrooms")
+def classrooms():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+    return render_template("classrooms.html", active="classrooms")
+
+@app.route("/suggestions")
+def suggestions_page():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+    return render_template("suggestions.html", active="suggestions")
 
 
 if __name__ == "__main__":
