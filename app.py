@@ -125,6 +125,32 @@ def suggestions_page():
         return redirect(url_for("login"))
     return render_template("suggestions.html", active="suggestions")
 
+# Water specific analytics
+total_water = int(data["Water_Usage_Liters"].sum())
+avg_water = float(round(data["Water_Usage_Liters"].mean(), 2))
+highest_water_building = max(water_per_building, key=water_per_building.get)
+lowest_water_building = min(water_per_building, key=water_per_building.get)
+daily_water = data.groupby("Date")["Water_Usage_Liters"].sum().to_dict()
+
+@app.route("/api/water-data")
+def water_data():
+    building_usage = {k: int(v) for k, v in water_per_building.items()}
+    trend = {str(k): int(v) for k, v in daily_water.items()}
+    insights = [
+        f"{highest_water_building} has the highest water consumption.",
+        f"{lowest_water_building} is currently the most water efficient building.",
+        "Fix leaking taps and pipes to reduce water wastage.",
+        "Install water meters per building for better tracking."
+    ]
+    return jsonify({
+        "total_water": total_water,
+        "average_water": avg_water,
+        "highest_usage_building": highest_water_building,
+        "most_efficient_building": lowest_water_building,
+        "building_usage": building_usage,
+        "daily_trend": trend,
+        "insights": insights
+    })
 
 if __name__ == "__main__":
     app.run(debug=True)
