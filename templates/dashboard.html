@@ -437,13 +437,13 @@ new Chart(wc, {
 
       // Suggestions — skip water-related ones
       const list = document.getElementById('sugList');
-      const filtered = d.suggestions.filter(s => !s.includes('💧'));
-      filtered.forEach(s => {
-        const div = document.createElement('div');
-        div.className = 'sug-item';
-        div.textContent = s;
-        list.appendChild(div);
-      });
+
+d.suggestions.forEach(s => {
+  const div = document.createElement('div');
+  div.className = 'sug-item';
+  div.textContent = s;
+  list.appendChild(div);
+});
     })
     .catch(() => {
       document.getElementById('loadingState').innerHTML =
