@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Smart Campus — Dashboard</title>
+  <title>Smart Campus — Electricity Analytics</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
@@ -31,19 +31,14 @@
     /* ── Sidebar ── */
     .sidebar {
       position: fixed;
-      left: 0; top: 0; bottom: 0;
-      width: 250px;
+      left: 0; top: 0; bottom: 0; width: 250px;
       background: rgba(255,255,255,0.02);
       border-right: 1px solid var(--border);
       padding: 28px 18px;
       display: flex; flex-direction: column;
       z-index: 100;
     }
-
-    .brand {
-      display: flex; align-items: center; gap: 11px;
-      margin-bottom: 36px;
-    }
+    .brand { display: flex; align-items: center; gap: 11px; margin-bottom: 36px; }
     .brand-icon {
       width: 38px; height: 38px;
       background: linear-gradient(135deg, var(--green), var(--blue));
@@ -51,36 +46,18 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 17px; flex-shrink: 0;
     }
-    .brand-name {
-      font-family: 'Syne', sans-serif;
-      font-weight: 800; font-size: 0.95rem; color: #fff; line-height: 1.2;
-    }
-    .brand-name span {
-      display: block; font-weight: 400; font-size: 0.68rem;
-      color: var(--muted); font-family: 'DM Sans', sans-serif;
-    }
-
-    .nav-label {
-      font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--muted); margin-bottom: 8px; padding-left: 4px;
-    }
+    .brand-name { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.95rem; color: #fff; line-height: 1.2; }
+    .brand-name span { display: block; font-weight: 400; font-size: 0.68rem; color: var(--muted); font-family: 'DM Sans', sans-serif; }
+    .nav-label { font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; padding-left: 4px; }
     .nav-item {
       display: flex; align-items: center; gap: 10px;
       padding: 9px 12px; border-radius: 10px;
       font-size: 0.85rem; color: var(--muted);
-      cursor: pointer; margin-bottom: 3px;
-      text-decoration: none;
+      cursor: pointer; margin-bottom: 3px; text-decoration: none;
     }
     .nav-item.active { background: rgba(0,200,150,0.1); color: var(--green); }
-    .nav-item:hover {
-      background: rgba(255,255,255,0.05);
-    }
-
-    .sidebar-footer {
-      margin-top: auto;
-      border-top: 1px solid var(--border);
-      padding-top: 18px;
-    }
+    .nav-item:hover  { background: rgba(255,255,255,0.05); }
+    .sidebar-footer { margin-top: auto; border-top: 1px solid var(--border); padding-top: 18px; }
     .logout-btn {
       display: flex; align-items: center; gap: 10px;
       padding: 9px 12px; border-radius: 10px;
@@ -91,129 +68,116 @@
 
     /* ── Main ── */
     .main { margin-left: 230px; padding: 30px 32px; }
-
-    .topbar {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 28px;
-    }
-    .page-title {
-      font-family: 'Syne', sans-serif;
-      font-weight: 800; font-size: 1.5rem; color: #fff;
-    }
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+    .page-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem; color: #fff; }
     .page-sub { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
-
     .live-badge {
       display: flex; align-items: center; gap: 8px;
-      background: rgba(0,200,150,0.08);
-      border: 1px solid rgba(0,200,150,0.2);
-      border-radius: 20px; padding: 6px 14px;
-      font-size: 0.78rem; color: var(--green);
+      background: rgba(0,200,150,0.08); border: 1px solid rgba(0,200,150,0.2);
+      border-radius: 20px; padding: 6px 14px; font-size: 0.78rem; color: var(--green);
     }
-    .live-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--green); animation: pulse 2s infinite;
-    }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-    /* ── KPI Cards — 3 columns now ── */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-      margin-bottom: 24px;
-    }
+    /* ── KPI Cards ── */
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
     .kpi-card {
-      background: var(--surf);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 20px 18px;
-      position: relative; overflow: hidden;
-      animation: fadeUp 0.5s ease both;
+      background: var(--surf); border: 1px solid var(--border);
+      border-radius: 16px; padding: 20px 18px;
+      position: relative; overflow: hidden; animation: fadeUp 0.5s ease both;
     }
-    .kpi-card::after {
-      content: ''; position: absolute;
-      top: 0; left: 0; right: 0; height: 2px;
-    }
-    .kpi-card.c-green::after  { background: linear-gradient(90deg, var(--green), transparent); }
+    .kpi-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+    .kpi-card.c-green::after  { background: linear-gradient(90deg, var(--green),  transparent); }
+    .kpi-card.c-blue::after   { background: linear-gradient(90deg, var(--blue),   transparent); }
     .kpi-card.c-orange::after { background: linear-gradient(90deg, var(--orange), transparent); }
-    .kpi-card.c-red::after    { background: linear-gradient(90deg, var(--red), transparent); }
-    .kpi-card.c-blue::after { background: linear-gradient(90deg, var(--blue), transparent); }
+    .kpi-card.c-red::after    { background: linear-gradient(90deg, var(--red),    transparent); }
+    .kpi-icon  { font-size: 22px; margin-bottom: 10px; }
+    .kpi-label { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+    .kpi-value { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 700; color: #fff; }
+    .kpi-sub   { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
 
-    .kpi-icon { font-size: 22px; margin-bottom: 10px; }
-    .kpi-label {
-      font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--muted); margin-bottom: 5px;
+    /* Wastage KPI cards — tinted to distinguish from electricity */
+    .wkpi-card {
+      border-radius: 16px; padding: 20px 18px;
+      position: relative; overflow: hidden; animation: fadeUp 0.5s ease both;
     }
-    .kpi-value {
-      font-family: 'Syne', sans-serif;
-      font-size: 1.5rem; font-weight: 700; color: #fff;
-    }
-    .kpi-sub { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
+    .wkpi-card.w-red    { background: rgba(255,107,107,0.05);  border: 1px solid rgba(255,107,107,0.15); }
+    .wkpi-card.w-orange { background: rgba(255,154,60,0.05);   border: 1px solid rgba(255,154,60,0.15); }
+    .wkpi-card.w-blue   { background: rgba(79,142,247,0.05);   border: 1px solid rgba(79,142,247,0.15); }
+    .wkpi-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+    .wkpi-card.w-red::after    { background: linear-gradient(90deg, var(--red),    transparent); }
+    .wkpi-card.w-orange::after { background: linear-gradient(90deg, var(--orange), transparent); }
+    .wkpi-card.w-blue::after   { background: linear-gradient(90deg, var(--blue),   transparent); }
+    .wkpi-val-red    { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--red); }
+    .wkpi-val-orange { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--orange); }
+    .wkpi-val-blue   { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--blue); }
 
-    /* ── Charts ── */
-    .charts-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
-      margin-bottom: 22px;
-    }
+    /* ── Charts grid ── */
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 22px; }
     .chart-card {
-      background: var(--surf);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 22px;
-      animation: fadeUp 0.5s ease both;
+      background: var(--surf); border: 1px solid var(--border);
+      border-radius: 18px; padding: 22px; animation: fadeUp 0.5s ease both;
     }
     .chart-card.full { grid-column: 1 / -1; }
-
-    .chart-hdr {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 18px;
-    }
-    .chart-title {
-      font-family: 'Syne', sans-serif;
-      font-weight: 700; font-size: 0.95rem; color: #fff;
-    }
-    .chart-tag {
-      font-size: 0.7rem; padding: 3px 10px;
-      border-radius: 20px; font-weight: 500;
-    }
-    .tag-g { background: rgba(0,200,150,0.1);  color: var(--green); }
-    .tag-o { background: rgba(255,154,60,0.1); color: var(--orange); }
-
-    .full {
-      grid-column: 1 / -1;
-    }
-
+    .chart-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .chart-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; color: #fff; }
+    .chart-tag  { font-size: 0.7rem; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+    .tag-g { background: rgba(0,200,150,0.1);   color: var(--green); }
+    .tag-o { background: rgba(255,154,60,0.1);  color: var(--orange); }
+    .tag-r { background: rgba(255,107,107,0.1); color: var(--red); }
+    .tag-b { background: rgba(79,142,247,0.1);  color: var(--blue); }
     canvas { max-height: 240px; }
 
-    /* ── Suggestions ── */
-    .sug-card {
-      background: var(--surf);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 22px;
-      animation: fadeUp 0.5s ease both;
+    /* ── Section divider ── */
+    .section-divider {
+      display: flex; align-items: center; gap: 14px;
+      margin: 28px 0 20px;
     }
-    .sug-title {
-      font-family: 'Syne', sans-serif;
-      font-weight: 700; font-size: 0.95rem; color: #fff;
-      margin-bottom: 14px;
+    .section-divider-line { flex: 1; height: 1px; background: rgba(255,255,255,0.07); }
+    .section-divider-label {
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.8rem;
+      color: var(--red); letter-spacing: 0.06em; text-transform: uppercase;
+      background: rgba(255,107,107,0.08); border: 1px solid rgba(255,107,107,0.2);
+      border-radius: 20px; padding: 5px 14px; white-space: nowrap;
     }
-    .sug-item {
-      display: flex; align-items: flex-start; gap: 10px;
-      padding: 12px 14px;
-      background: rgba(255,255,255,0.02);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      margin-bottom: 8px;
-      font-size: 0.85rem;
-      color: rgba(255,255,255,0.7);
-      line-height: 1.5;
-      transition: border-color 0.2s;
+
+    /* ── Action recommendation cards ── */
+    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 30px; }
+    .action-card {
+      background: var(--surf); border: 1px solid var(--border);
+      border-radius: 14px; padding: 16px 18px;
+      display: flex; gap: 14px; align-items: flex-start;
+      transition: border-color 0.2s; animation: fadeUp 0.5s ease both;
     }
-    .sug-item:hover { border-color: rgba(0,200,150,0.25); }
-    .sug-item:last-child { margin-bottom: 0; }
+    .action-card.glitch:hover { border-color: rgba(255,107,107,0.3); }
+    .action-card.event:hover  { border-color: rgba(255,154,60,0.3); }
+
+    .action-badge {
+      flex-shrink: 0; padding: 5px 11px; border-radius: 20px;
+      font-size: 0.68rem; font-weight: 600; letter-spacing: 0.05em;
+      text-transform: uppercase; margin-top: 2px; white-space: nowrap;
+    }
+    .badge-glitch { background: rgba(255,107,107,0.12); color: var(--red);    border: 1px solid rgba(255,107,107,0.25); }
+    .badge-event  { background: rgba(255,154,60,0.1);   color: var(--orange); border: 1px solid rgba(255,154,60,0.25); }
+
+    .action-info { flex: 1; }
+    .action-building { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.92rem; color: #fff; margin-bottom: 3px; }
+    .action-meta     { font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; }
+    .action-reason   { font-size: 0.82rem; color: rgba(255,255,255,0.65); line-height: 1.5; margin-bottom: 8px; }
+    .action-rec {
+      display: flex; align-items: center; gap: 7px;
+      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 8px; padding: 7px 10px;
+      font-size: 0.78rem; color: rgba(255,255,255,0.6); line-height: 1.4;
+    }
+    .rec-icon { font-size: 13px; flex-shrink: 0; }
+
+    /* ── XAI legend ── */
+    .xai-legend { display: flex; gap: 18px; margin-bottom: 16px; flex-wrap: wrap; }
+    .xai-legend-item { display: flex; align-items: center; gap: 7px; font-size: 0.74rem; color: var(--muted); }
+    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .dot-red    { background: var(--red); }
+    .dot-orange { background: var(--orange); }
 
     /* ── Loading ── */
     #loadingState {
@@ -223,12 +187,10 @@
     }
     .spinner {
       width: 36px; height: 36px;
-      border: 3px solid var(--border);
-      border-top-color: var(--green);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+      border: 3px solid var(--border); border-top-color: var(--green);
+      border-radius: 50%; animation: spin 0.8s linear infinite;
     }
-    @keyframes spin  { to { transform: rotate(360deg); } }
+    @keyframes spin   { to { transform: rotate(360deg); } }
     @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
   </style>
 </head>
@@ -240,12 +202,11 @@
     <div class="brand-icon">🏛️</div>
     <div class="brand-name">SmartCampus<span>Admin Panel</span></div>
   </div>
-
   <div class="nav-label">Analytics</div>
-  <a href="/dashboard" class="nav-item {% if active == 'dashboard' %}active{% endif %}">📊 Dashboard</a>
+  <a href="/dashboard"   class="nav-item {% if active == 'dashboard'   %}active{% endif %}">📊 Dashboard</a>
   <a href="/electricity" class="nav-item {% if active == 'electricity' %}active{% endif %}">⚡ Electricity</a>
-  <a href="/water" class="nav-item {% if active == 'water' %}active{% endif %}">💧 Water</a>
-  <a href="/classrooms" class="nav-item {% if active == 'classrooms' %}active{% endif %}">🏫 Classrooms</a>
+  <a href="/water"       class="nav-item {% if active == 'water'       %}active{% endif %}">💧 Water</a>
+  <a href="/classrooms"  class="nav-item {% if active == 'classrooms'  %}active{% endif %}">🏫 Classrooms</a>
   <div class="nav-label" style="margin-top:18px;">Reports</div>
   <a href="/suggestions" class="nav-item {% if active == 'suggestions' %}active{% endif %}">💡 Suggestions</a>
   <div class="sidebar-footer">
@@ -258,43 +219,40 @@
   <div class="topbar">
     <div>
       <div class="page-title">Electricity Analytics</div>
-<div class="page-sub">Detailed analysis of campus energy usage</div>
+      <div class="page-sub">Detailed analysis of campus energy usage</div>
     </div>
     <div class="live-badge"><div class="live-dot"></div> Live Data</div>
   </div>
 
-  <!-- KPI — Electricity Analytics -->
-<div class="kpi-grid">
-  <div class="kpi-card c-green">
-    <div class="kpi-icon">⚡</div>
-    <div class="kpi-label">Total Electricity</div>
-    <div class="kpi-value" id="kpiTotalElec">—</div>
-    <div class="kpi-sub">total units consumed</div>
+  <!-- ── Electricity KPIs ── -->
+  <div class="kpi-grid">
+    <div class="kpi-card c-green">
+      <div class="kpi-icon">⚡</div>
+      <div class="kpi-label">Total Electricity</div>
+      <div class="kpi-value" id="kpiTotalElec">—</div>
+      <div class="kpi-sub">total units consumed</div>
+    </div>
+    <div class="kpi-card c-blue">
+      <div class="kpi-icon">📊</div>
+      <div class="kpi-label">Average Usage</div>
+      <div class="kpi-value" id="kpiAvgElec">—</div>
+      <div class="kpi-sub">avg units per record</div>
+    </div>
+    <div class="kpi-card c-orange">
+      <div class="kpi-icon">🏢</div>
+      <div class="kpi-label">Highest Usage</div>
+      <div class="kpi-value" id="kpiHighElec">—</div>
+      <div class="kpi-sub">highest consuming block</div>
+    </div>
+    <div class="kpi-card c-red">
+      <div class="kpi-icon">🌱</div>
+      <div class="kpi-label">Most Efficient</div>
+      <div class="kpi-value" id="kpiLowElec">—</div>
+      <div class="kpi-sub">lowest electricity usage</div>
+    </div>
   </div>
 
-  <div class="kpi-card c-blue">
-    <div class="kpi-icon">📊</div>
-    <div class="kpi-label">Average Usage</div>
-    <div class="kpi-value" id="kpiAvgElec">—</div>
-    <div class="kpi-sub">avg units per record</div>
-  </div>
-
-  <div class="kpi-card c-orange">
-    <div class="kpi-icon">🏢</div>
-    <div class="kpi-label">Highest Usage</div>
-    <div class="kpi-value" id="kpiHighElec">—</div>
-    <div class="kpi-sub">highest consuming block</div>
-  </div>
-
-  <div class="kpi-card c-red">
-    <div class="kpi-icon">🌱</div>
-    <div class="kpi-label">Most Efficient</div>
-    <div class="kpi-value" id="kpiLowElec">—</div>
-    <div class="kpi-sub">lowest electricity usage</div>
-  </div>
-</div>
-
-  <!-- Charts — electricity half width, utilization full width -->
+  <!-- ── Electricity Charts ── -->
   <div class="charts-grid">
     <div class="chart-card">
       <div class="chart-hdr">
@@ -303,31 +261,97 @@
       </div>
       <canvas id="elecChart"></canvas>
     </div>
-
     <div class="chart-card">
       <div class="chart-hdr">
         <div class="chart-title">Electricity Distribution</div>
-        <span class="chart-tag tag-o">% Utilized</span>
+        <span class="chart-tag tag-o">% Share</span>
       </div>
       <canvas id="pieChart"></canvas>
     </div>
-
     <div class="chart-card full">
       <div class="chart-hdr">
-        <div class="chart-title">Energy Efficient Trends</div>
-        <span class="chart-tag tag-g">Units</span>
+        <div class="chart-title">Energy Efficiency Trends</div>
+        <span class="chart-tag tag-g">Weekly Avg</span>
       </div>
       <canvas id="trendChart"></canvas>
     </div>
+  </div>
 
-    <!-- Suggestions -->
-    <div class="sug-card full">
-      <div class="sug-title">💡 Efficiency Insights</div>
-      <div id="insightList"></div>
+  <!-- ── Section Divider ── -->
+  <div class="section-divider">
+    <div class="section-divider-line"></div>
+    <div class="section-divider-label">⚠️ XAI Wastage Detection</div>
+    <div class="section-divider-line"></div>
+  </div>
+
+  <!-- ── Wastage KPIs (tinted red/orange/blue) ── -->
+  <div class="kpi-grid" style="margin-bottom:20px;">
+    <div class="wkpi-card w-red">
+      <div class="kpi-icon">⚠️</div>
+      <div class="kpi-label">Total Wastage Events</div>
+      <div class="wkpi-val-red" id="kpiTotalWastage">—</div>
+      <div class="kpi-sub">anomalies detected</div>
+    </div>
+    <div class="wkpi-card w-red">
+      <div class="kpi-icon">🔴</div>
+      <div class="kpi-label">Sensor Glitches</div>
+      <div class="wkpi-val-red" id="kpiGlitch">—</div>
+      <div class="kpi-sub">need maintenance fix</div>
+    </div>
+    <div class="wkpi-card w-orange">
+      <div class="kpi-icon">🟡</div>
+      <div class="kpi-label">Campus Events</div>
+      <div class="wkpi-val-orange" id="kpiEvent">—</div>
+      <div class="kpi-sub">valid AI decisions</div>
+    </div>
+    <div class="wkpi-card w-blue">
+      <div class="kpi-icon">🏗️</div>
+      <div class="kpi-label">Buildings Affected</div>
+      <div class="wkpi-val-blue" id="kpiBuildingsAffected">—</div>
+      <div class="kpi-sub">with wastage anomalies</div>
     </div>
   </div>
 
-  
+  <!-- ── Wastage Charts (3 side by side) ── -->
+  <div class="charts-grid" style="grid-template-columns:1fr 1fr 1fr; margin-bottom:20px;">
+    <div class="chart-card">
+      <div class="chart-hdr">
+        <div class="chart-title">⚠️ Wasted Units / Building</div>
+        <span class="chart-tag tag-r">Units</span>
+      </div>
+      <canvas id="wastageBarChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-hdr">
+        <div class="chart-title">🔍 Anomaly Breakdown</div>
+        <span class="chart-tag tag-r">XAI</span>
+      </div>
+      <canvas id="wastageDonutChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-hdr">
+        <div class="chart-title">📊 Event Frequency</div>
+        <span class="chart-tag tag-o">No. of Events</span>
+      </div>
+      <canvas id="wastageFreqChart"></canvas>
+    </div>
+  </div>
+
+  <!-- ── Action Recommendations (teacher requirement) ── -->
+  <div style="margin-bottom:12px;">
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem;color:#fff;margin-bottom:6px;">
+      🔧 Recommended Actions
+      <span style="font-size:0.7rem;font-weight:400;color:var(--muted);margin-left:8px;font-family:'DM Sans',sans-serif;">
+        — AI instantly tells you what to do for each anomaly
+      </span>
+    </div>
+    <div class="xai-legend">
+      <div class="xai-legend-item"><div class="legend-dot dot-red"></div><span><strong style="color:var(--red)">Sensor Glitch</strong> — occupancy &lt;65%, high usage → maintenance needed</span></div>
+      <div class="xai-legend-item"><div class="legend-dot dot-orange"></div><span><strong style="color:var(--orange)">Campus Event</strong> — occupancy ≥65% → valid AI decision, no action needed</span></div>
+    </div>
+  </div>
+  <div class="action-grid" id="actionGrid"></div>
+
 </main>
 
 <!-- Loading -->
@@ -337,7 +361,7 @@
 </div>
 
 <script>
-  const C = { green: '#00c896', orange: '#ff9a3c' };
+  const C = { green: '#00c896', orange: '#ff9a3c', red: '#ff6b6b', blue: '#4f8ef7' };
 
   function grad(ctx, hex) {
     const g = ctx.createLinearGradient(0, 0, 0, 240);
@@ -351,22 +375,13 @@
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: '#1a2035',
-        padding: 10,
-        cornerRadius: 8,
-        titleFont: { family: 'DM Sans' },
-        bodyFont:  { family: 'DM Sans' },
+        backgroundColor: '#1a2035', padding: 10, cornerRadius: 8,
+        titleFont: { family: 'DM Sans' }, bodyFont: { family: 'DM Sans' },
       }
     },
     scales: {
-      x: {
-        grid: { color: 'rgba(255,255,255,0.04)' },
-        ticks: { color: 'rgba(255,255,255,0.4)', font: { family: 'DM Sans', size: 12 } }
-      },
-      y: {
-        grid: { color: 'rgba(255,255,255,0.04)' },
-        ticks: { color: 'rgba(255,255,255,0.4)', font: { family: 'DM Sans', size: 12 } }
-      }
+      x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: 'rgba(255,255,255,0.4)', font: { family: 'DM Sans', size: 12 } } },
+      y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: 'rgba(255,255,255,0.4)', font: { family: 'DM Sans', size: 12 } } }
     }
   });
 
@@ -375,144 +390,131 @@
     .then(d => {
       document.getElementById('loadingState').style.display = 'none';
       document.getElementById('mainContent').style.display  = 'block';
-      const insightBox = document.getElementById("insightList");
 
-d.insights.forEach(text=>{
-  const div=document.createElement("div");
-  div.className="sug-item";
-  div.textContent=text;
-  insightBox.appendChild(div);
-});
+      // ── Electricity KPIs ──
+      document.getElementById('kpiTotalElec').textContent = d.total_electricity.toLocaleString();
+      document.getElementById('kpiAvgElec').textContent   = d.average_electricity;
+      document.getElementById('kpiHighElec').textContent  = 'Block ' + d.highest_usage_building;
+      document.getElementById('kpiLowElec').textContent   = 'Block ' + d.most_efficient_building;
 
-      const B = d.buildings;
+      const buildings = Object.keys(d.building_usage).map(b => 'Block ' + b);
+      const values    = Object.values(d.building_usage);
 
-      // KPI (Electricity Page)
+      // ── Bar Chart ──
+      const ec = document.getElementById('elecChart').getContext('2d');
+      new Chart(ec, {
+        type: 'bar',
+        data: { labels: buildings, datasets: [{ data: values, backgroundColor: grad(ec, C.green), borderColor: C.green, borderWidth: 2, borderRadius: 8 }] },
+        options: baseOpts()
+      });
 
-document.getElementById('kpiTotalElec').textContent =
-  d.total_electricity.toLocaleString();
-
-document.getElementById('kpiAvgElec').textContent =
-  d.average_electricity;
-
-document.getElementById('kpiHighElec').textContent =
-  d.highest_usage_building;
-
-document.getElementById('kpiLowElec').textContent =
-  d.most_efficient_building;
-
-      const buildings = Object.keys(d.building_usage);
-const values = Object.values(d.building_usage);
-
-const ec = document.getElementById('elecChart').getContext('2d');
-
-new Chart(ec, {
-  type: 'bar',
-  data: {
-    labels: buildings,
-    datasets: [{
-      data: values,
-      backgroundColor: grad(ec, C.green),
-      borderColor: C.green,
-      borderWidth: 2,
-      borderRadius: 8
-    }]
-  },
-  options: baseOpts()
-});
-
+      // ── Pie Chart ──
       const pc = document.getElementById('pieChart').getContext('2d');
-
-new Chart(pc,{
-  type:'pie',
-  data:{
-    labels:buildings,
-    datasets:[{
-      data:values,
-      backgroundColor:[
-        "#ffe46b",  // teal
-        "#7acddb",  // blue
-        "#f883bd",  // orange
-        "#835bbe"   // purple
-      ],
-      borderColor:[
-    "#e2ae01",    // brighter red
-    "#005cb3",    // bright blue
-    "#d6006b",    // bright orange
-    "#7149ac"     // bright purple
-  ],
-      borderWidth:2,
-      hoverOffset:10
-    }]
-  },
-  options:{
-    plugins:{
-      legend:{
-        labels:{
-          color:"rgba(255,255,255,0.7)",
-          font:{family:"DM Sans"}
-        }
-      },
-      tooltip:{
-        callbacks:{
-          label:function(context){
-            const total=context.dataset.data.reduce((a,b)=>a+b,0)
-            const value=context.raw
-            const percent=((value/total)*100).toFixed(1)
-            return percent+"%"
+      new Chart(pc, {
+        type: 'pie',
+        data: {
+          labels: buildings,
+          datasets: [{
+            data: values,
+            backgroundColor: ['#ffe46b','#7acddb','#f883bd','#835bbe'],
+            borderColor:     ['#e2ae01','#005cb3','#d6006b','#7149ac'],
+            borderWidth: 2, hoverOffset: 10
+          }]
+        },
+        options: {
+          plugins: {
+            legend: { labels: { color: 'rgba(255,255,255,0.7)', font: { family: 'DM Sans' } } },
+            tooltip: { callbacks: { label: ctx => ((ctx.raw / ctx.dataset.data.reduce((a,b)=>a+b,0))*100).toFixed(1)+'%' } }
           }
         }
-      }
-    }
-  }
-});
-      
-      const dates = Object.keys(d.daily_trend);
-const valuesTrend = Object.values(d.daily_trend);
-
-// group into weeks
-const weeks = ["Week 1","Week 2","Week 3","Week 4"];
-const weeklyData = [];
-
-const chunk = Math.ceil(valuesTrend.length / 4);
-
-for(let i=0;i<4;i++){
-  const start=i*chunk;
-  const end=start+chunk;
-
-  const weekValues=valuesTrend.slice(start,end);
-  const avg=weekValues.reduce((a,b)=>a+b,0)/weekValues.length;
-
-  weeklyData.push(Math.round(avg));
-}
-
-const tc = document.getElementById('trendChart').getContext('2d');
-
-new Chart(tc,{
-  type:'line',
-  data:{
-    labels:weeks,
-    datasets:[{
-      data:weeklyData,
-      borderColor:"#e7a5a5",
-      backgroundColor:grad(tc,"#ec7c7c"),
-      borderWidth:3,
-      pointBackgroundColor:"#f0b7b7",
-      pointRadius:5,
-      tension:0.4,
-      fill:true
-    }]
-  },
-  options:baseOpts()
-});
-      // Suggestions — skip water-related ones
-      const list = document.getElementById('sugList');
-      const filtered = d.suggestions.filter(s => !s.includes('💧'));
-      filtered.forEach(s => {
-        const div = document.createElement('div');
-        div.className = 'sug-item';
-        div.textContent = s;
-        list.appendChild(div);
       });
+
+      // ── Trend Chart ──
+      const valuesTrend = Object.values(d.daily_trend);
+      const weeks = ['Week 1','Week 2','Week 3','Week 4'];
+      const chunk = Math.ceil(valuesTrend.length / 4);
+      const weeklyData = Array.from({length:4}, (_,i) => {
+        const slice = valuesTrend.slice(i*chunk, i*chunk+chunk);
+        return Math.round(slice.reduce((a,b)=>a+b,0)/slice.length);
+      });
+      const tc = document.getElementById('trendChart').getContext('2d');
+      new Chart(tc, {
+        type: 'line',
+        data: { labels: weeks, datasets: [{ data: weeklyData, borderColor:'#e7a5a5', backgroundColor: grad(tc,'#ec7c7c'), borderWidth:3, pointBackgroundColor:'#f0b7b7', pointRadius:5, tension:0.4, fill:true }] },
+        options: baseOpts()
+      });
+
+      // ── Wastage KPIs ──
+      document.getElementById('kpiTotalWastage').textContent     = d.total_wastage_events;
+      document.getElementById('kpiGlitch').textContent           = d.glitch_count;
+      document.getElementById('kpiEvent').textContent            = d.event_count;
+      document.getElementById('kpiBuildingsAffected').textContent = Object.keys(d.building_wastage_units).length;
+
+      const wBuildings = Object.keys(d.building_wastage_units).map(b => 'Block ' + b);
+      const wUnits     = Object.values(d.building_wastage_units);
+      const wCounts    = Object.values(d.building_wastage_counts);
+
+      // ── Wastage Bar Chart ──
+      const wbc = document.getElementById('wastageBarChart').getContext('2d');
+      new Chart(wbc, {
+        type: 'bar',
+        data: { labels: wBuildings, datasets: [{ data: wUnits, backgroundColor: grad(wbc, C.red), borderColor: C.red, borderWidth: 2, borderRadius: 8 }] },
+        options: baseOpts()
+      });
+
+      // ── Wastage Doughnut ──
+      const wdc = document.getElementById('wastageDonutChart').getContext('2d');
+      new Chart(wdc, {
+        type: 'doughnut',
+        data: {
+          labels: ['Sensor Glitch', 'Campus Event'],
+          datasets: [{ data: [d.glitch_count, d.event_count], backgroundColor:['rgba(255,107,107,0.75)','rgba(255,154,60,0.75)'], borderColor:[C.red, C.orange], borderWidth:2, hoverOffset:10 }]
+        },
+        options: {
+          cutout: '65%',
+          plugins: {
+            legend: { position:'bottom', labels:{ color:'rgba(255,255,255,0.7)', font:{family:'DM Sans'}, padding:14 } },
+            tooltip: { backgroundColor:'#1a2035', padding:10, cornerRadius:8, bodyFont:{family:'DM Sans'} }
+          }
+        }
+      });
+
+      // ── Wastage Frequency Chart ──
+      const wfc = document.getElementById('wastageFreqChart').getContext('2d');
+      new Chart(wfc, {
+        type: 'bar',
+        data: { labels: wBuildings, datasets: [{ data: wCounts, backgroundColor: grad(wfc, C.orange), borderColor: C.orange, borderWidth: 2, borderRadius: 8 }] },
+        options: baseOpts()
+      });
+
+      // ── Action Recommendation Cards ──
+      const grid = document.getElementById('actionGrid');
+      if (d.wastage_alerts && d.wastage_alerts.length > 0) {
+        d.wastage_alerts.forEach(alert => {
+          const isGlitch = alert.type === 'sensor_glitch';
+          const card = document.createElement('div');
+          card.className = `action-card ${isGlitch ? 'glitch' : 'event'}`;
+          card.innerHTML = `
+            <div>
+              <span class="action-badge ${isGlitch ? 'badge-glitch' : 'badge-event'}">
+                ${isGlitch ? '🔴 Sensor Glitch' : '🟡 Campus Event'}
+              </span>
+            </div>
+            <div class="action-info">
+              <div class="action-building">Block ${alert.building}</div>
+              <div class="action-meta">📅 ${alert.date} &nbsp;|&nbsp; ⚡ ${alert.units.toLocaleString()} units</div>
+              <div class="action-reason">${alert.reason}</div>
+              <div class="action-rec">
+                <span class="rec-icon">${isGlitch ? '🔧' : '✅'}</span>
+                ${alert.action}
+              </div>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+      } else {
+        grid.innerHTML = `<div style="grid-column:1/-1;padding:16px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:12px;font-size:0.85rem;color:var(--green);">✅ No wastage anomalies detected in the current dataset.</div>`;
+      }
     })
     .catch(() => {
       document.getElementById('loadingState').innerHTML =
@@ -521,4 +523,3 @@ new Chart(tc,{
 </script>
 </body>
 </html>
- 
