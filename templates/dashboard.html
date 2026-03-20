@@ -10,205 +10,144 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg:     #0a0f1e;
-      --surf:   rgba(255,255,255,0.03);
-      --border: rgba(255,255,255,0.07);
-      --green:  #00c896;
-      --blue:   #4f8ef7;
-      --orange: #ff9a3c;
-      --red:    #ff6b6b;
-      --text:   #e8edf8;
-      --muted:  rgba(255,255,255,0.35);
+      --bg:       #f4faf8;
+      --surf:     #ffffff;
+      --surf2:    #e6f5f0;
+      --border:   #c8e8de;
+      --teal:     #1a8060;
+      --coral:    #e8441a;
+      --indigo:   #2d3acc;
+      --amber:    #f0b800;
+      --red:      #d43a1a;
+      --text:     #0f2d25;
+      --muted:    #4a8070;
+      --muted2:   #7aaa90;
     }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      min-height: 100vh;
-    }
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
 
     /* ── Sidebar ── */
     .sidebar {
-      position: fixed;
-      left: 0; top: 0; bottom: 0;
-      width: 250px;
-      background: rgba(255,255,255,0.02);
-      border-right: 1px solid var(--border);
+      position: fixed; left: 0; top: 0; bottom: 0; width: 250px;
+      background: var(--surf);
+      border-right: 1.5px solid var(--border);
       padding: 28px 18px;
-      display: flex; flex-direction: column;
-      z-index: 100;
+      display: flex; flex-direction: column; z-index: 100;
+      box-shadow: 2px 0 12px rgba(26,128,96,0.06);
     }
 
-    .brand {
-      display: flex; align-items: center; gap: 11px;
-      margin-bottom: 36px;
-    }
+    .brand { display: flex; align-items: center; gap: 11px; margin-bottom: 36px; }
     .brand-icon {
       width: 38px; height: 38px;
-      background: linear-gradient(135deg, var(--green), var(--blue));
+      background: linear-gradient(135deg, var(--teal), var(--indigo));
       border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
       font-size: 17px; flex-shrink: 0;
     }
-    .brand-name {
-      font-family: 'Syne', sans-serif;
-      font-weight: 800; font-size: 0.95rem; color: #fff; line-height: 1.2;
-    }
-    .brand-name span {
-      display: block; font-weight: 400; font-size: 0.68rem;
-      color: var(--muted); font-family: 'DM Sans', sans-serif;
-    }
+    .brand-name { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.95rem; color: var(--text); line-height: 1.2; }
+    .brand-name span { display: block; font-weight: 400; font-size: 0.68rem; color: var(--muted); font-family: 'DM Sans', sans-serif; }
 
-    .nav-label {
-      font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase;
-      color: var(--muted); margin-bottom: 8px; padding-left: 4px;
-    }
+    .nav-label { font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted2); margin-bottom: 8px; padding-left: 4px; }
     .nav-item {
       display: flex; align-items: center; gap: 10px;
       padding: 9px 12px; border-radius: 10px;
       font-size: 0.85rem; color: var(--muted);
-      cursor: pointer; margin-bottom: 3px;
-      text-decoration: none;
+      cursor: pointer; margin-bottom: 3px; text-decoration: none;
+      transition: background 0.2s;
     }
-    .nav-item.active { background: rgba(0,200,150,0.1); color: var(--green); }
-    .nav-item:hover {
-      background: rgba(255,255,255,0.05);
-    }
+    .nav-item.active { background: rgba(232,68,26,0.1); color: var(--coral); font-weight: 500; }
+    .nav-item:hover { background: var(--surf2); color: var(--text); }
 
-    .sidebar-footer {
-      margin-top: auto;
-      border-top: 1px solid var(--border);
-      padding-top: 18px;
-    }
+    .sidebar-footer { margin-top: auto; border-top: 1.5px solid var(--border); padding-top: 18px; }
     .logout-btn {
       display: flex; align-items: center; gap: 10px;
       padding: 9px 12px; border-radius: 10px;
       font-size: 0.85rem; color: var(--red);
       text-decoration: none; transition: background 0.2s;
     }
-    .logout-btn:hover { background: rgba(255,107,107,0.08); }
+    .logout-btn:hover { background: rgba(212,58,26,0.08); }
 
     /* ── Main ── */
     .main { margin-left: 230px; padding: 30px 32px; }
 
-    .topbar {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 28px;
-    }
-    .page-title {
-      font-family: 'Syne', sans-serif;
-      font-weight: 800; font-size: 1.5rem; color: #fff;
-    }
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+    .page-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem; color: var(--text); }
     .page-sub { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
 
     .live-badge {
       display: flex; align-items: center; gap: 8px;
-      background: rgba(0,200,150,0.08);
-      border: 1px solid rgba(0,200,150,0.2);
+      background: rgba(26,128,96,0.08);
+      border: 1px solid rgba(26,128,96,0.25);
       border-radius: 20px; padding: 6px 14px;
-      font-size: 0.78rem; color: var(--green);
+      font-size: 0.78rem; color: var(--teal);
     }
-    .live-dot {
-      width: 7px; height: 7px; border-radius: 50%;
-      background: var(--green); animation: pulse 2s infinite;
-    }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); animation: pulse 2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-    /* ── KPI Cards — 3 columns now ── */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-      margin-bottom: 24px;
-    }
+    /* ── KPI Cards ── */
+    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
     .kpi-card {
       background: var(--surf);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 20px 18px;
+      border: 1.5px solid var(--border);
+      border-radius: 16px; padding: 20px 18px;
       position: relative; overflow: hidden;
       animation: fadeUp 0.5s ease both;
+      box-shadow: 0 2px 8px rgba(26,128,96,0.06);
     }
-    .kpi-card::after {
-      content: ''; position: absolute;
-      top: 0; left: 0; right: 0; height: 2px;
-    }
-    .kpi-card.c-green::after  { background: linear-gradient(90deg, var(--green), transparent); }
-    .kpi-card.c-orange::after { background: linear-gradient(90deg, var(--orange), transparent); }
-    .kpi-card.c-red::after    { background: linear-gradient(90deg, var(--red), transparent); }
-    .kpi-card.c-blue::after { background: linear-gradient(90deg, var(--blue), transparent); }
+    .kpi-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+    .kpi-card.c-teal::after   { background: linear-gradient(90deg, var(--teal),  transparent); }
+    .kpi-card.c-coral::after  { background: linear-gradient(90deg, var(--coral), transparent); }
+    .kpi-card.c-indigo::after { background: linear-gradient(90deg, var(--indigo),transparent); }
+    .kpi-card.c-amber::after  { background: linear-gradient(90deg, var(--amber), transparent); }
 
     .kpi-icon { font-size: 22px; margin-bottom: 10px; }
-    .kpi-label {
-      font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase;
-      color: var(--muted); margin-bottom: 5px;
-    }
-    .kpi-value {
-      font-family: 'Syne', sans-serif;
-      font-size: 1.5rem; font-weight: 700; color: #fff;
-    }
-    .kpi-sub { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
+    .kpi-label { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
+    .kpi-value { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--text); }
+    .kpi-sub { font-size: 0.72rem; color: var(--muted2); margin-top: 3px; }
 
     /* ── Charts ── */
-    .charts-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
-      margin-bottom: 22px;
-    }
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 22px; }
     .chart-card {
       background: var(--surf);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 22px;
+      border: 1.5px solid var(--border);
+      border-radius: 18px; padding: 22px;
       animation: fadeUp 0.5s ease both;
+      box-shadow: 0 2px 8px rgba(26,128,96,0.06);
     }
     .chart-card.full { grid-column: 1 / -1; }
 
-    .chart-hdr {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 18px;
-    }
-    .chart-title {
-      font-family: 'Syne', sans-serif;
-      font-weight: 700; font-size: 0.95rem; color: #fff;
-    }
-    .chart-tag {
-      font-size: 0.7rem; padding: 3px 10px;
-      border-radius: 20px; font-weight: 500;
-    }
-    .tag-g { background: rgba(0,200,150,0.1);  color: var(--green); }
-    .tag-o { background: rgba(255,154,60,0.1); color: var(--orange); }
+    .chart-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .chart-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; color: var(--text); }
+    .chart-tag { font-size: 0.7rem; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+    .tag-coral  { background: rgba(232,68,26,0.1);  color: var(--coral); }
+    .tag-indigo { background: rgba(45,58,204,0.1);  color: var(--indigo); }
+    .tag-teal   { background: rgba(26,128,96,0.1);  color: var(--teal); }
+    .tag-amber  { background: rgba(240,184,0,0.12); color: #8a6800; }
 
     canvas { max-height: 240px; }
 
     /* ── Suggestions ── */
     .sug-card {
       background: var(--surf);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 22px;
+      border: 1.5px solid var(--border);
+      border-radius: 18px; padding: 22px;
       animation: fadeUp 0.5s ease both;
+      box-shadow: 0 2px 8px rgba(26,128,96,0.06);
     }
-    .sug-title {
-      font-family: 'Syne', sans-serif;
-      font-weight: 700; font-size: 0.95rem; color: #fff;
-      margin-bottom: 14px;
-    }
+    .sug-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; color: var(--text); margin-bottom: 14px; }
     .sug-item {
       display: flex; align-items: flex-start; gap: 10px;
       padding: 12px 14px;
-      background: rgba(255,255,255,0.02);
+      background: var(--surf2);
       border: 1px solid var(--border);
       border-radius: 10px;
       margin-bottom: 8px;
       font-size: 0.85rem;
-      color: rgba(255,255,255,0.7);
+      color: var(--muted);
       line-height: 1.5;
       transition: border-color 0.2s;
     }
-    .sug-item:hover { border-color: rgba(0,200,150,0.25); }
+    .sug-item:hover { border-color: rgba(232,68,26,0.3); }
     .sug-item:last-child { margin-bottom: 0; }
 
     /* ── Loading ── */
@@ -220,7 +159,7 @@
     .spinner {
       width: 36px; height: 36px;
       border: 3px solid var(--border);
-      border-top-color: var(--green);
+      border-top-color: var(--coral);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
@@ -238,10 +177,10 @@
   </div>
 
   <div class="nav-label">Analytics</div>
-  <a href="/dashboard" class="nav-item {% if active == 'dashboard' %}active{% endif %}">📊 Dashboard</a>
+  <a href="/dashboard"   class="nav-item {% if active == 'dashboard'   %}active{% endif %}">📊 Dashboard</a>
   <a href="/electricity" class="nav-item {% if active == 'electricity' %}active{% endif %}">⚡ Electricity</a>
-  <a href="/water" class="nav-item {% if active == 'water' %}active{% endif %}">💧 Water</a>
-  <a href="/classrooms" class="nav-item {% if active == 'classrooms' %}active{% endif %}">🏫 Classrooms</a>
+  <a href="/water"       class="nav-item {% if active == 'water'       %}active{% endif %}">💧 Water</a>
+  <a href="/classrooms"  class="nav-item {% if active == 'classrooms'  %}active{% endif %}">🏫 Classrooms</a>
   <div class="nav-label" style="margin-top:18px;">Reports</div>
   <a href="/suggestions" class="nav-item {% if active == 'suggestions' %}active{% endif %}">💡 Suggestions</a>
   <div class="sidebar-footer">
@@ -259,27 +198,27 @@
     <div class="live-badge"><div class="live-dot"></div> Live Data</div>
   </div>
 
-  <!-- KPI — 4 cards -->
+  <!-- KPI Cards -->
   <div class="kpi-grid">
-    <div class="kpi-card c-green">
+    <div class="kpi-card c-coral">
       <div class="kpi-icon">⚡</div>
       <div class="kpi-label">Total Electricity</div>
       <div class="kpi-value" id="kpiElec">—</div>
       <div class="kpi-sub">units consumed</div>
     </div>
-    <div class="kpi-card c-blue">
+    <div class="kpi-card c-teal">
       <div class="kpi-icon">💧</div>
       <div class="kpi-label">Total Water</div>
       <div class="kpi-value" id="kpiWater">—</div>
       <div class="kpi-sub">liters consumed</div>
     </div>
-    <div class="kpi-card c-orange">
+    <div class="kpi-card c-indigo">
       <div class="kpi-icon">🏫</div>
       <div class="kpi-label">Avg Utilization</div>
       <div class="kpi-value" id="kpiUtil">—</div>
       <div class="kpi-sub">across all buildings</div>
     </div>
-    <div class="kpi-card c-red">
+    <div class="kpi-card c-amber">
       <div class="kpi-icon">🏆</div>
       <div class="kpi-label">Highest Usage</div>
       <div class="kpi-value" id="kpiHighest" style="font-size:1rem">—</div>
@@ -287,12 +226,12 @@
     </div>
   </div>
 
-  <!-- Charts — electricity half width, utilization full width -->
+  <!-- Charts -->
   <div class="charts-grid">
     <div class="chart-card">
       <div class="chart-hdr">
         <div class="chart-title">⚡ Electricity Usage per Building</div>
-        <span class="chart-tag tag-g">Units</span>
+        <span class="chart-tag tag-coral">Units</span>
       </div>
       <canvas id="elecChart"></canvas>
     </div>
@@ -300,7 +239,7 @@
     <div class="chart-card">
       <div class="chart-hdr">
         <div class="chart-title">🏫 Classroom Utilization</div>
-        <span class="chart-tag tag-o">% Occupied</span>
+        <span class="chart-tag tag-indigo">% Occupied</span>
       </div>
       <canvas id="utilChart"></canvas>
     </div>
@@ -308,7 +247,7 @@
     <div class="chart-card">
       <div class="chart-hdr">
         <div class="chart-title">💧 Water Usage Overview</div>
-        <span class="chart-tag tag-g">Liters</span>
+        <span class="chart-tag tag-teal">Liters</span>
       </div>
       <canvas id="waterChart"></canvas>
     </div>
@@ -319,18 +258,16 @@
       <div id="sugList"></div>
     </div>
   </div>
-
-  
 </main>
 
 <!-- Loading -->
 <div id="loadingState" style="margin-left:230px">
   <div class="spinner"></div>
-  <div style="color:var(--muted);font-size:0.82rem">Loading campus data…</div>
+  <div style="color:#4a8070;font-size:0.82rem">Loading campus data…</div>
 </div>
 
 <script>
-  const C = { green: '#00c896', orange: '#ff9a3c' };
+  const C = { coral: '#e8441a', indigo: '#2d3acc', teal: '#1a8060', amber: '#f0b800' };
 
   function grad(ctx, hex) {
     const g = ctx.createLinearGradient(0, 0, 0, 240);
@@ -344,21 +281,25 @@
     plugins: {
       legend: { display: false },
       tooltip: {
-        backgroundColor: '#1a2035',
+        backgroundColor: '#fff',
+        borderColor: '#c8e8de',
+        borderWidth: 1,
         padding: 10,
         cornerRadius: 8,
+        titleColor: '#0f2d25',
+        bodyColor: '#4a8070',
         titleFont: { family: 'DM Sans' },
         bodyFont:  { family: 'DM Sans' },
       }
     },
     scales: {
       x: {
-        grid: { color: 'rgba(255,255,255,0.04)' },
-        ticks: { color: 'rgba(255,255,255,0.4)', font: { family: 'DM Sans', size: 12 } }
+        grid: { color: 'rgba(26,128,96,0.06)' },
+        ticks: { color: '#4a8070', font: { family: 'DM Sans', size: 12 } }
       },
       y: {
-        grid: { color: 'rgba(255,255,255,0.04)' },
-        ticks: { color: 'rgba(255,255,255,0.4)', font: { family: 'DM Sans', size: 12 } }
+        grid: { color: 'rgba(26,128,96,0.06)' },
+        ticks: { color: '#4a8070', font: { family: 'DM Sans', size: 12 } }
       }
     }
   });
@@ -371,85 +312,52 @@
 
       const B = d.buildings;
 
-      // KPI
-      const totalElec = d.electricity.reduce((a, b) => a + b, 0);
-      const avgUtil   = (d.utilization.reduce((a, b) => a + b, 0) / d.utilization.length).toFixed(1);
+      const totalElec  = d.electricity.reduce((a, b) => a + b, 0);
+      const avgUtil    = (d.utilization.reduce((a, b) => a + b, 0) / d.utilization.length).toFixed(1);
       const totalWater = d.water.reduce((a, b) => a + b, 0);
 
       document.getElementById('kpiElec').textContent    = totalElec.toLocaleString();
       document.getElementById('kpiUtil').textContent    = avgUtil + '%';
       document.getElementById('kpiHighest').textContent = d.highest_usage_building;
-      document.getElementById('kpiWater').textContent = totalWater.toLocaleString();
+      document.getElementById('kpiWater').textContent   = totalWater.toLocaleString();
 
-      // Electricity bar
+      // Electricity bar — Coral
       const ec = document.getElementById('elecChart').getContext('2d');
       new Chart(ec, {
         type: 'bar',
-        data: {
-          labels: B,
-          datasets: [{
-            data: d.electricity,
-            backgroundColor: grad(ec, C.green),
-            borderColor: C.green,
-            borderWidth: 2,
-            borderRadius: 8,
-          }]
-        },
+        data: { labels: B, datasets: [{ data: d.electricity, backgroundColor: grad(ec, C.coral), borderColor: C.coral, borderWidth: 2, borderRadius: 8 }] },
         options: baseOpts()
       });
 
-      // Utilization line
+      // Utilization line — Indigo
       const uc = document.getElementById('utilChart').getContext('2d');
       new Chart(uc, {
         type: 'line',
-        data: {
-          labels: B,
-          datasets: [{
-            data: d.utilization,
-            borderColor: C.orange,
-            backgroundColor: grad(uc, C.orange),
-            borderWidth: 2.5,
-            pointBackgroundColor: C.orange,
-            pointRadius: 5,
-            tension: 0.4,
-            fill: true,
-          }]
-        },
+        data: { labels: B, datasets: [{ data: d.utilization, borderColor: C.indigo, backgroundColor: grad(uc, C.indigo), borderWidth: 2.5, pointBackgroundColor: C.indigo, pointRadius: 5, tension: 0.4, fill: true }] },
         options: baseOpts()
       });
 
+      // Water bar — Teal
       const wc = document.getElementById('waterChart').getContext('2d');
+      new Chart(wc, {
+        type: 'bar',
+        data: { labels: B, datasets: [{ data: d.water, backgroundColor: grad(wc, C.teal), borderColor: C.teal, borderWidth: 2, borderRadius: 8 }] },
+        options: baseOpts()
+      });
 
-new Chart(wc, {
-  type: 'bar',
-  data: {
-    labels: B,
-    datasets: [{
-      data: d.water,
-      backgroundColor: grad(wc, '#4f8ef7'),
-      borderColor: '#4f8ef7',
-      borderWidth: 2,
-      borderRadius: 8
-    }]
-  },
-  options: baseOpts()
-});
-
-      // Suggestions — skip water-related ones
+      // Suggestions
       const list = document.getElementById('sugList');
-
-d.suggestions.forEach(s => {
-  const div = document.createElement('div');
-  div.className = 'sug-item';
-  div.textContent = s;
-  list.appendChild(div);
-});
+      d.suggestions.forEach(s => {
+        const div = document.createElement('div');
+        div.className = 'sug-item';
+        div.textContent = s;
+        list.appendChild(div);
+      });
     })
     .catch(() => {
       document.getElementById('loadingState').innerHTML =
-        '<div style="color:#ff6b6b">⚠️ Failed to load data. Please refresh.</div>';
+        '<div style="color:#d43a1a">⚠️ Failed to load data. Please refresh.</div>';
     });
 </script>
 </body>
 </html>
- 
