@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Campus — Classrooms</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:#f4faf8; --surf:#ffffff; --surf2:#e6f5f0; --border:#c8e8de;
+      --teal:#1a8060; --coral:#e8441a; --indigo:#2d3acc; --amber:#f0b800;
+      --red:#d43a1a; --text:#0f2d25; --muted:#4a8070; --muted2:#7aaa90;
+    }
+    body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; }
+
+    .sidebar { position:fixed; left:0; top:0; bottom:0; width:250px; background:var(--surf); border-right:1.5px solid var(--border); padding:28px 18px; display:flex; flex-direction:column; z-index:100; box-shadow:2px 0 12px rgba(26,128,96,0.06); overflow-y:auto; }
+    .brand { display:flex; align-items:center; gap:11px; margin-bottom:36px; }
+    .brand-icon { width:38px; height:38px; background:linear-gradient(135deg,var(--teal),var(--indigo)); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
+    .brand-name { font-family:'Syne',sans-serif; font-weight:800; font-size:0.95rem; color:var(--text); line-height:1.2; }
+    .brand-name span { display:block; font-weight:400; font-size:0.68rem; color:var(--muted); font-family:'DM Sans',sans-serif; }
+    .nav-label { font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted2); margin-bottom:8px; padding-left:4px; }
+    .nav-item { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:10px; font-size:0.85rem; color:var(--muted); cursor:pointer; margin-bottom:3px; text-decoration:none; transition:background 0.2s; }
+    .nav-item:hover { background:var(--surf2); color:var(--text); }
+    .nav-parent { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:10px; font-size:0.85rem; font-weight:600; color:var(--indigo); background:rgba(45,58,204,0.08); cursor:pointer; margin-bottom:3px; user-select:none; }
+    .nav-parent .chev { margin-left:auto; font-size:0.7rem; transition:transform 0.2s; }
+    .nav-parent.collapsed .chev { transform:rotate(-90deg); }
+    .block-subnav.hidden { display:none; }
+    .block-subnav { padding-left:14px; margin-left:10px; margin-bottom:4px; }
+    .block-item { display:flex; align-items:center; justify-content:space-between; padding:7px 10px; border-radius:8px; font-size:0.82rem; color:var(--muted); cursor:pointer; margin-bottom:2px; transition:background 0.2s; }
+    .block-item:hover { background:var(--surf2); color:var(--text); }
+    .block-item.active { background:rgba(45,58,204,0.1); color:var(--indigo); font-weight:600; }
+    .block-item-left { display:flex; align-items:center; gap:8px; }
+    .block-dot { width:7px; height:7px; border-radius:50%; background:var(--border); flex-shrink:0; }
+    .block-item.active .block-dot { background:var(--indigo); }
+    .block-val { font-size:0.72rem; color:var(--muted2); }
+    .block-item.active .block-val { color:var(--indigo); }
+    .sidebar-footer { margin-top:auto; border-top:1.5px solid var(--border); padding-top:18px; }
+    .logout-btn { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:10px; font-size:0.85rem; color:var(--red); text-decoration:none; transition:background 0.2s; }
+    .logout-btn:hover { background:rgba(212,58,26,0.08); }
+
+    .main { margin-left:250px; padding:30px 32px; }
+    .topbar { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:24px; }
+    .breadcrumb { font-size:0.72rem; color:var(--muted2); margin-bottom:4px; }
+    .page-title { font-family:'Syne',sans-serif; font-weight:800; font-size:1.5rem; color:var(--text); }
+    .page-sub { font-size:0.8rem; color:var(--muted); margin-top:3px; }
+    .live-badge { display:flex; align-items:center; gap:8px; background:rgba(45,58,204,0.08); border:1px solid rgba(45,58,204,0.25); border-radius:20px; padding:6px 14px; font-size:0.78rem; color:var(--indigo); flex-shrink:0; }
+    .live-dot { width:7px; height:7px; border-radius:50%; background:var(--indigo); animation:pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .section-label { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.09em; color:var(--muted2); margin-bottom:10px; }
+    .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
+    .kpi-card { background:var(--surf); border:1.5px solid var(--border); border-radius:16px; padding:18px 16px; position:relative; overflow:hidden; box-shadow:0 2px 8px rgba(26,128,96,0.06); animation:fadeUp 0.4s ease both; }
+    .kpi-card::after { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+    .kpi-card.c-indigo::after { background:linear-gradient(90deg,var(--indigo),transparent); }
+    .kpi-card.c-coral::after  { background:linear-gradient(90deg,var(--coral),transparent); }
+    .kpi-card.c-amber::after  { background:linear-gradient(90deg,var(--amber),transparent); }
+    .kpi-card.c-teal::after   { background:linear-gradient(90deg,var(--teal),transparent); }
+    .kpi-icon { font-size:20px; margin-bottom:8px; }
+    .kpi-label { font-size:0.68rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
+    .kpi-value { font-family:'Syne',sans-serif; font-size:1.4rem; font-weight:700; color:var(--text); }
+    .kpi-sub { font-size:0.7rem; color:var(--muted2); margin-top:3px; }
+
+    .block-divider { display:flex; align-items:center; gap:14px; margin:20px 0; }
+    .block-divider-line { flex:1; height:1px; background:var(--border); }
+    .block-divider-label { font-family:'Syne',sans-serif; font-weight:700; font-size:0.8rem; color:var(--indigo); background:rgba(45,58,204,0.08); border:1px solid rgba(45,58,204,0.2); border-radius:20px; padding:5px 16px; white-space:nowrap; }
+
+    .det-kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
+    .det-kpi { background:var(--surf2); border-radius:14px; padding:16px; animation:fadeUp 0.4s ease both; }
+    .det-kpi .dl { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:5px; }
+    .det-kpi .dv { font-family:'Syne',sans-serif; font-size:1.4rem; font-weight:700; color:var(--text); }
+    .det-kpi .ds { font-size:0.7rem; color:var(--muted2); margin-top:3px; }
+    .det-kpi.indigo .dv { color:var(--indigo); }
+    .det-kpi.coral .dv  { color:var(--coral); }
+    .det-kpi.amber .dv  { color:#8a6800; }
+    .det-kpi.teal .dv   { color:var(--teal); }
+
+    .charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:20px; }
+    .chart-card { background:var(--surf); border:1.5px solid var(--border); border-radius:18px; padding:20px; box-shadow:0 2px 8px rgba(26,128,96,0.06); animation:fadeUp 0.4s ease both; }
+    .chart-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .chart-title { font-family:'Syne',sans-serif; font-weight:700; font-size:0.92rem; color:var(--text); }
+    .chart-tag { font-size:0.68rem; padding:3px 10px; border-radius:20px; font-weight:500; }
+    .tag-indigo { background:rgba(45,58,204,0.1); color:var(--indigo); }
+    .tag-coral  { background:rgba(232,68,26,0.1); color:var(--coral); }
+    .tag-amber  { background:rgba(240,184,0,0.12); color:#8a6800; }
+    .tag-teal   { background:rgba(26,128,96,0.1); color:var(--teal); }
+    canvas { max-height:220px; }
+
+    /* Room table */
+    .rooms-card { background:var(--surf); border:1.5px solid var(--border); border-radius:18px; padding:20px; box-shadow:0 2px 8px rgba(26,128,96,0.06); margin-bottom:30px; }
+    .rooms-title { font-family:'Syne',sans-serif; font-weight:700; font-size:0.92rem; color:var(--text); margin-bottom:14px; }
+    .rooms-table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+    .rooms-table th { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.07em; color:var(--muted2); padding:8px 12px; text-align:left; border-bottom:1.5px solid var(--border); }
+    .rooms-table td { padding:10px 12px; color:var(--muted); border-bottom:1px solid var(--border); }
+    .rooms-table tr:last-child td { border-bottom:none; }
+    .rooms-table tr:hover td { background:var(--surf2); }
+    .status-pill { display:inline-block; font-size:0.68rem; padding:2px 9px; border-radius:20px; font-weight:600; }
+    .status-high   { background:rgba(45,58,204,0.1); color:var(--indigo); }
+    .status-medium { background:rgba(240,184,0,0.12); color:#8a6800; }
+    .status-low    { background:rgba(212,58,26,0.1); color:var(--red); }
+
+    #loadingState { display:flex; flex-direction:column; align-items:center; justify-content:center; height:80vh; gap:14px; }
+    .spinner { width:36px; height:36px; border:3px solid var(--border); border-top-color:var(--indigo); border-radius:50%; animation:spin 0.8s linear infinite; }
+    @keyframes spin   { to { transform:rotate(360deg); } }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-icon">🏛️</div>
+    <div class="brand-name">SmartCampus<span>Admin Panel</span></div>
+  </div>
+  <div class="nav-label">Analytics</div>
+  <a href="/dashboard"   class="nav-item {% if active == 'dashboard'   %}active{% endif %}">📊 Dashboard</a>
+  <a href="/electricity" class="nav-item {% if active == 'electricity' %}active{% endif %}">⚡ Electricity</a>
+  <a href="/water"       class="nav-item {% if active == 'water'       %}active{% endif %}">💧 Water</a>
+  <div class="nav-parent" id="navParent" onclick="toggleBlocks()">🏫 Classrooms <span class="chev">▾</span></div>
+  <div class="block-subnav" id="blockSubnav">
+    <div class="block-item active" data-block="A" onclick="switchBlock('A')">
+      <div class="block-item-left"><div class="block-dot"></div>Block A</div>
+      <span class="block-val" id="nav-val-A">—</span>
+    </div>
+    <div class="block-item" data-block="B" onclick="switchBlock('B')">
+      <div class="block-item-left"><div class="block-dot"></div>Block B</div>
+      <span class="block-val" id="nav-val-B">—</span>
+    </div>
+    <div class="block-item" data-block="C" onclick="switchBlock('C')">
+      <div class="block-item-left"><div class="block-dot"></div>Block C</div>
+      <span class="block-val" id="nav-val-C">—</span>
+    </div>
+    <div class="block-item" data-block="D" onclick="switchBlock('D')">
+      <div class="block-item-left"><div class="block-dot"></div>Block D</div>
+      <span class="block-val" id="nav-val-D">—</span>
+    </div>
+  </div>
+  <div class="nav-label" style="margin-top:18px;">Reports</div>
+  <a href="/suggestions" class="nav-item {% if active == 'suggestions' %}active{% endif %}">💡 Suggestions</a>
+  <div class="sidebar-footer">
+    <a href="/logout" class="logout-btn">🚪 &nbsp;Logout</a>
+  </div>
+</aside>
+
+<main class="main" id="mainContent" style="display:none">
+  <div class="topbar">
+    <div>
+      <div class="page-title" id="pageTitle">Block A</div>
+      <div class="page-sub">Classroom utilization analytics for this building</div>
+    </div>
+    <div class="live-badge"><div class="live-dot"></div> Live Data</div>
+  </div>
+
+  <div class="section-label">Campus overview</div>
+  <div class="kpi-grid">
+    <div class="kpi-card c-indigo"><div class="kpi-icon">📊</div><div class="kpi-label">Avg Utilization</div><div class="kpi-value" id="ovAvgUtil">—</div><div class="kpi-sub">all buildings</div></div>
+    <div class="kpi-card c-coral"><div class="kpi-icon">🏆</div><div class="kpi-label">Most Occupied</div><div class="kpi-value" id="ovMostOcc">—</div><div class="kpi-sub">highest occupancy</div></div>
+    <div class="kpi-card c-amber"><div class="kpi-icon">📉</div><div class="kpi-label">Least Occupied</div><div class="kpi-value" id="ovLeastOcc">—</div><div class="kpi-sub">lowest occupancy</div></div>
+    <div class="kpi-card c-teal"><div class="kpi-icon">🏫</div><div class="kpi-label">Total Rooms</div><div class="kpi-value" id="ovTotalRooms">48</div><div class="kpi-sub">across campus</div></div>
+  </div>
+
+  <div class="block-divider">
+    <div class="block-divider-line"></div>
+    <div class="block-divider-label" id="blockLabel">🏫 Block A Detail</div>
+    <div class="block-divider-line"></div>
+  </div>
+
+  <div class="det-kpi-grid">
+    <div class="det-kpi indigo"><div class="dl">Avg Occupancy</div><div class="dv" id="detUtil">—</div><div class="ds">utilization rate</div></div>
+    <div class="det-kpi teal"><div class="dl">Total Rooms</div><div class="dv" id="detRooms">12</div><div class="ds">in this block</div></div>
+    <div class="det-kpi amber"><div class="dl">Peak Hour</div><div class="dv" id="detPeak">—</div><div class="ds">busiest slot</div></div>
+    <div class="det-kpi coral"><div class="dl">Idle Rooms</div><div class="dv" id="detIdle">—</div><div class="ds">underutilized</div></div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-hdr"><div class="chart-title">🕐 Hourly Occupancy</div><span class="chart-tag tag-indigo">% Occupied</span></div>
+      <canvas id="blockHourChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-hdr"><div class="chart-title">📈 Weekly Trend</div><span class="chart-tag tag-indigo">% Utilization</span></div>
+      <canvas id="blockLineChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-hdr"><div class="chart-title">🏢 vs Campus Average</div><span class="chart-tag tag-coral">Comparison</span></div>
+      <canvas id="blockCompareChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-hdr"><div class="chart-title">📅 Daily Pattern</div><span class="chart-tag tag-amber">Mon–Fri</span></div>
+      <canvas id="blockDayChart"></canvas>
+    </div>
+  </div>
+
+
+</main>
+
+<div id="loadingState" style="margin-left:250px">
+  <div class="spinner"></div>
+  <div style="color:#4a8070;font-size:0.82rem">Loading classroom data…</div>
+</div>
+
+<script>
+  const C = { indigo:'#2d3acc', coral:'#e8441a', teal:'#1a8060', amber:'#f0b800' };
+
+  /* Static block data — replace with /api/classrooms-data when available */
+  const BLOCK_DATA = {
+    A: { util:76.1, rooms:12, idle:2, peak:'10–11 AM', hourly:[38,55,82,91,78,65,70,60,45,30], weekly:[72,74,76,77], daily:[70,80,82,76,68] },
+    B: { util:77.4, rooms:12, idle:1, peak:'10–11 AM', hourly:[42,60,88,93,80,70,74,62,48,32], weekly:[74,75,78,80], daily:[72,82,85,78,70] },
+    C: { util:61.8, rooms:12, idle:4, peak:'11–12 PM', hourly:[28,40,62,78,70,58,55,48,35,22], weekly:[58,60,63,67], daily:[60,66,68,62,55] },
+    D: { util:60.2, rooms:12, idle:4, peak:'11–12 PM', hourly:[25,38,60,75,68,55,52,44,32,20], weekly:[56,58,61,65], daily:[58,64,66,60,52] },
+  };
+
+
+  let charts = {};
+
+  function destroyCharts() { Object.values(charts).forEach(c=>c&&c.destroy()); charts={}; }
+
+  const baseOpts = () => ({
+    responsive:true,
+    plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#fff', borderColor:'#c8e8de', borderWidth:1, padding:10, cornerRadius:8, titleColor:'#0f2d25', bodyColor:'#4a8070', titleFont:{family:'DM Sans'}, bodyFont:{family:'DM Sans'} } },
+    scales:{ x:{grid:{color:'rgba(26,128,96,0.06)'},ticks:{color:'#4a8070',font:{family:'DM Sans',size:11}}}, y:{grid:{color:'rgba(26,128,96,0.06)'},ticks:{color:'#4a8070',font:{family:'DM Sans',size:11}}} }
+  });
+
+  function grad(ctx, hex) {
+    const g = ctx.createLinearGradient(0,0,0,220);
+    g.addColorStop(0,hex+'bb'); g.addColorStop(1,hex+'11'); return g;
+  }
+
+  function toggleBlocks() {
+    const parent = document.getElementById('navParent');
+    const subnav = document.getElementById('blockSubnav');
+    parent.classList.toggle('collapsed');
+    subnav.classList.toggle('hidden');
+  }
+
+  function switchBlock(block) {
+    document.querySelectorAll('.block-item').forEach(el=>el.classList.toggle('active', el.dataset.block===block));
+    document.getElementById('pageTitle').textContent  = `Block ${block}`;
+    document.getElementById('blockLabel').textContent = `🏫 Block ${block} Detail`;
+    renderBlockDetail(block);
+  }
+
+  function renderBlockDetail(block) {
+    const bd = BLOCK_DATA[block];
+    const campusAvg = (Object.values(BLOCK_DATA).reduce((a,b)=>a+b.util,0)/4).toFixed(1);
+    const mostOcc   = Object.entries(BLOCK_DATA).sort((a,b)=>b[1].util-a[1].util)[0][0];
+    const leastOcc  = Object.entries(BLOCK_DATA).sort((a,b)=>a[1].util-b[1].util)[0][0];
+
+    document.getElementById('ovAvgUtil').textContent   = campusAvg+'%';
+    document.getElementById('ovMostOcc').textContent   = 'Block '+mostOcc;
+    document.getElementById('ovLeastOcc').textContent  = 'Block '+leastOcc;
+
+    document.getElementById('detUtil').textContent  = bd.util+'%';
+    document.getElementById('detRooms').textContent = bd.rooms;
+    document.getElementById('detPeak').textContent  = bd.peak;
+    document.getElementById('detIdle').textContent  = bd.idle;
+
+    destroyCharts();
+
+    const hours = ['8AM','9AM','10AM','11AM','12PM','1PM','2PM','3PM','4PM','5PM'];
+    const weeks = ['Week 1','Week 2','Week 3','Week 4'];
+    const days  = ['Mon','Tue','Wed','Thu','Fri'];
+
+    const hc = document.getElementById('blockHourChart').getContext('2d');
+    charts.hour = new Chart(hc,{type:'bar',data:{labels:hours,datasets:[{data:bd.hourly,backgroundColor:grad(hc,C.indigo),borderColor:C.indigo,borderWidth:2,borderRadius:6}]},options:baseOpts()});
+
+    const lc = document.getElementById('blockLineChart').getContext('2d');
+    charts.line = new Chart(lc,{type:'line',data:{labels:weeks,datasets:[{data:bd.weekly,borderColor:C.indigo,backgroundColor:grad(lc,C.indigo),borderWidth:2.5,pointBackgroundColor:C.indigo,pointRadius:5,tension:0.4,fill:true}]},options:baseOpts()});
+
+    const allUtils = Object.entries(BLOCK_DATA).map(([b,v])=>({b,v:v.util}));
+    const cc = document.getElementById('blockCompareChart').getContext('2d');
+    charts.compare = new Chart(cc,{type:'bar',data:{labels:allUtils.map(x=>`Block ${x.b}`),datasets:[{data:allUtils.map(x=>x.v),backgroundColor:allUtils.map(x=>x.b===block?C.indigo+'cc':'rgba(45,58,204,0.18)'),borderColor:allUtils.map(x=>x.b===block?C.indigo:'#c8e8de'),borderWidth:2,borderRadius:8}]},options:baseOpts()});
+
+    const dc = document.getElementById('blockDayChart').getContext('2d');
+    charts.day = new Chart(dc,{type:'line',data:{labels:days,datasets:[{data:bd.daily,borderColor:C.amber,backgroundColor:grad(dc,C.amber),borderWidth:2.5,pointBackgroundColor:C.amber,pointRadius:5,tension:0.4,fill:true}]},options:baseOpts()});
+  }
+
+  /* Load utilization from API or use static */
+  fetch('/api/data')
+    .then(r=>r.json())
+    .then(d=>{
+      document.getElementById('loadingState').style.display='none';
+      document.getElementById('mainContent').style.display='block';
+
+      /* Patch BLOCK_DATA util from real API if buildings match */
+      if(d.buildings && d.utilization){
+        d.buildings.forEach((b,i)=>{ if(BLOCK_DATA[b]) BLOCK_DATA[b].util=+d.utilization[i].toFixed(1); });
+      }
+
+      /* Sidebar values */
+      Object.keys(BLOCK_DATA).forEach(b=>{
+        const el=document.getElementById('nav-val-'+b);
+        if(el) el.textContent=BLOCK_DATA[b].util+'%';
+      });
+
+      switchBlock('A');
+    })
+    .catch(()=>{
+      /* If API fails, still render with static data */
+      document.getElementById('loadingState').style.display='none';
+      document.getElementById('mainContent').style.display='block';
+      Object.keys(BLOCK_DATA).forEach(b=>{
+        const el=document.getElementById('nav-val-'+b);
+        if(el) el.textContent=BLOCK_DATA[b].util+'%';
+      });
+      switchBlock('A');
+    });
+</script>
+</body>
+</html>
