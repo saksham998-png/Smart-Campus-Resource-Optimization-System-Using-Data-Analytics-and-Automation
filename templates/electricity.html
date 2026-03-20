@@ -8,517 +8,432 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg:     #0a0f1e;
-      --surf:   rgba(255,255,255,0.03);
-      --border: rgba(255,255,255,0.07);
-      --green:  #00c896;
-      --blue:   #4f8ef7;
-      --orange: #ff9a3c;
-      --red:    #ff6b6b;
-      --text:   #e8edf8;
-      --muted:  rgba(255,255,255,0.35);
+      --bg:#f4faf8; --surf:#ffffff; --surf2:#e6f5f0; --border:#c8e8de;
+      --teal:#1a8060; --coral:#e8441a; --indigo:#2d3acc; --amber:#f0b800;
+      --red:#d43a1a; --text:#0f2d25; --muted:#4a8070; --muted2:#7aaa90;
     }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      min-height: 100vh;
-    }
+    body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; }
 
     /* ── Sidebar ── */
-    .sidebar {
-      position: fixed;
-      left: 0; top: 0; bottom: 0; width: 250px;
-      background: rgba(255,255,255,0.02);
-      border-right: 1px solid var(--border);
-      padding: 28px 18px;
-      display: flex; flex-direction: column;
-      z-index: 100;
-    }
-    .brand { display: flex; align-items: center; gap: 11px; margin-bottom: 36px; }
-    .brand-icon {
-      width: 38px; height: 38px;
-      background: linear-gradient(135deg, var(--green), var(--blue));
-      border-radius: 10px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 17px; flex-shrink: 0;
-    }
-    .brand-name { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.95rem; color: #fff; line-height: 1.2; }
-    .brand-name span { display: block; font-weight: 400; font-size: 0.68rem; color: var(--muted); font-family: 'DM Sans', sans-serif; }
-    .nav-label { font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; padding-left: 4px; }
-    .nav-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 9px 12px; border-radius: 10px;
-      font-size: 0.85rem; color: var(--muted);
-      cursor: pointer; margin-bottom: 3px; text-decoration: none;
-    }
-    .nav-item.active { background: rgba(0,200,150,0.1); color: var(--green); }
-    .nav-item:hover  { background: rgba(255,255,255,0.05); }
-    .sidebar-footer { margin-top: auto; border-top: 1px solid var(--border); padding-top: 18px; }
-    .logout-btn {
-      display: flex; align-items: center; gap: 10px;
-      padding: 9px 12px; border-radius: 10px;
-      font-size: 0.85rem; color: var(--red);
-      text-decoration: none; transition: background 0.2s;
-    }
-    .logout-btn:hover { background: rgba(255,107,107,0.08); }
+    .sidebar { position:fixed; left:0; top:0; bottom:0; width:250px; background:var(--surf); border-right:1.5px solid var(--border); padding:28px 18px; display:flex; flex-direction:column; z-index:100; box-shadow:2px 0 12px rgba(26,128,96,0.06); overflow-y:auto; }
+    .brand { display:flex; align-items:center; gap:11px; margin-bottom:36px; }
+    .brand-icon { width:38px; height:38px; background:linear-gradient(135deg,var(--teal),var(--indigo)); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
+    .brand-name { font-family:'Syne',sans-serif; font-weight:800; font-size:0.95rem; color:var(--text); line-height:1.2; }
+    .brand-name span { display:block; font-weight:400; font-size:0.68rem; color:var(--muted); font-family:'DM Sans',sans-serif; }
+    .nav-label { font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted2); margin-bottom:8px; padding-left:4px; }
+    .nav-item { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:10px; font-size:0.85rem; color:var(--muted); cursor:pointer; margin-bottom:3px; text-decoration:none; transition:background 0.2s; }
+    .nav-item:hover { background:var(--surf2); color:var(--text); }
+
+    /* Electricity parent */
+    .nav-parent { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:10px; font-size:0.85rem; font-weight:600; color:var(--coral); background:rgba(232,68,26,0.08); cursor:pointer; margin-bottom:3px; user-select:none; }
+    .nav-parent .chev { margin-left:auto; font-size:0.7rem; transition:transform 0.2s; }
+    .nav-parent.collapsed .chev { transform:rotate(-90deg); }
+
+    /* Block sub-items */
+    .block-subnav { padding-left:14px; margin-left:10px; margin-bottom:4px; overflow:hidden; transition:max-height 0.25s ease; max-height:200px; }
+    .block-subnav.hidden { max-height:0; }
+    .block-item { display:flex; align-items:center; justify-content:space-between; padding:7px 10px; border-radius:8px; font-size:0.82rem; color:var(--muted); cursor:pointer; margin-bottom:2px; transition:background 0.2s; }
+    .block-item:hover { background:var(--surf2); color:var(--text); }
+    .block-item.active { background:rgba(232,68,26,0.12); color:var(--coral); font-weight:600; }
+    .block-item-left { display:flex; align-items:center; gap:8px; }
+    .block-dot { width:7px; height:7px; border-radius:50%; background:var(--border); flex-shrink:0; transition:background 0.2s; }
+    .block-item.active .block-dot { background:var(--coral); }
+    .block-val { font-size:0.72rem; color:var(--muted2); }
+    .block-item.active .block-val { color:var(--coral); }
+
+    .sidebar-footer { margin-top:auto; border-top:1.5px solid var(--border); padding-top:18px; }
+    .logout-btn { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:10px; font-size:0.85rem; color:var(--red); text-decoration:none; transition:background 0.2s; }
+    .logout-btn:hover { background:rgba(212,58,26,0.08); }
 
     /* ── Main ── */
-    .main { margin-left: 230px; padding: 30px 32px; }
-    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
-    .page-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem; color: #fff; }
-    .page-sub { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
-    .live-badge {
-      display: flex; align-items: center; gap: 8px;
-      background: rgba(0,200,150,0.08); border: 1px solid rgba(0,200,150,0.2);
-      border-radius: 20px; padding: 6px 14px; font-size: 0.78rem; color: var(--green);
-    }
-    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+    .main { margin-left:250px; padding:30px 32px; }
+    .topbar { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:24px; }
+    .page-title { font-family:'Syne',sans-serif; font-weight:800; font-size:1.5rem; color:var(--text); }
+    .page-sub { font-size:0.8rem; color:var(--muted); margin-top:3px; }
+    .live-badge { display:flex; align-items:center; gap:8px; background:rgba(232,68,26,0.08); border:1px solid rgba(232,68,26,0.25); border-radius:20px; padding:6px 14px; font-size:0.78rem; color:var(--coral); flex-shrink:0; }
+    .live-dot { width:7px; height:7px; border-radius:50%; background:var(--coral); animation:pulse 2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-    /* ── KPI Cards ── */
-    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px; }
-    .kpi-card {
-      background: var(--surf); border: 1px solid var(--border);
-      border-radius: 16px; padding: 20px 18px;
-      position: relative; overflow: hidden; animation: fadeUp 0.5s ease both;
-    }
-    .kpi-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
-    .kpi-card.c-green::after  { background: linear-gradient(90deg, var(--green),  transparent); }
-    .kpi-card.c-blue::after   { background: linear-gradient(90deg, var(--blue),   transparent); }
-    .kpi-card.c-orange::after { background: linear-gradient(90deg, var(--orange), transparent); }
-    .kpi-card.c-red::after    { background: linear-gradient(90deg, var(--red),    transparent); }
-    .kpi-icon  { font-size: 22px; margin-bottom: 10px; }
-    .kpi-label { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 5px; }
-    .kpi-value { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 700; color: #fff; }
-    .kpi-sub   { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
+    /* ── Pick-a-block placeholder ── */
+    #pickState { display:none; flex-direction:column; align-items:center; justify-content:center; min-height:60vh; text-align:center; gap:20px; }
+    .pick-icon { font-size:48px; }
+    .pick-title { font-family:'Syne',sans-serif; font-weight:800; font-size:1.3rem; color:var(--text); }
+    .pick-sub { font-size:0.88rem; color:var(--muted); max-width:320px; line-height:1.6; }
+    .pick-blocks { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:8px; }
+    .pick-btn { background:var(--surf); border:1.5px solid var(--border); border-radius:12px; padding:14px 24px; cursor:pointer; transition:all 0.2s; font-family:'Syne',sans-serif; font-weight:700; font-size:1rem; color:var(--text); box-shadow:0 2px 8px rgba(26,128,96,0.06); }
+    .pick-btn:hover { background:rgba(232,68,26,0.06); border-color:var(--coral); color:var(--coral); transform:translateY(-2px); box-shadow:0 6px 16px rgba(232,68,26,0.12); }
+    .pick-btn .pb-val { display:block; font-size:0.72rem; font-weight:400; color:var(--muted2); margin-top:3px; font-family:'DM Sans',sans-serif; }
+    .pick-btn.loaded:hover .pb-val { color:var(--coral); }
 
-    /* Wastage KPI cards — tinted to distinguish from electricity */
-    .wkpi-card {
-      border-radius: 16px; padding: 20px 18px;
-      position: relative; overflow: hidden; animation: fadeUp 0.5s ease both;
-    }
-    .wkpi-card.w-red    { background: rgba(255,107,107,0.05);  border: 1px solid rgba(255,107,107,0.15); }
-    .wkpi-card.w-orange { background: rgba(255,154,60,0.05);   border: 1px solid rgba(255,154,60,0.15); }
-    .wkpi-card.w-blue   { background: rgba(79,142,247,0.05);   border: 1px solid rgba(79,142,247,0.15); }
-    .wkpi-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
-    .wkpi-card.w-red::after    { background: linear-gradient(90deg, var(--red),    transparent); }
-    .wkpi-card.w-orange::after { background: linear-gradient(90deg, var(--orange), transparent); }
-    .wkpi-card.w-blue::after   { background: linear-gradient(90deg, var(--blue),   transparent); }
-    .wkpi-val-red    { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--red); }
-    .wkpi-val-orange { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--orange); }
-    .wkpi-val-blue   { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--blue); }
+    /* ── Campus KPIs ── */
+    .section-label { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.09em; color:var(--muted2); margin-bottom:10px; }
+    .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
+    .kpi-card { background:var(--surf); border:1.5px solid var(--border); border-radius:16px; padding:18px 16px; position:relative; overflow:hidden; box-shadow:0 2px 8px rgba(26,128,96,0.06); animation:fadeUp 0.4s ease both; }
+    .kpi-card::after { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+    .kpi-card.c-coral::after  { background:linear-gradient(90deg,var(--coral),transparent); }
+    .kpi-card.c-indigo::after { background:linear-gradient(90deg,var(--indigo),transparent); }
+    .kpi-card.c-teal::after   { background:linear-gradient(90deg,var(--teal),transparent); }
+    .kpi-card.c-amber::after  { background:linear-gradient(90deg,var(--amber),transparent); }
+    .kpi-icon { font-size:20px; margin-bottom:8px; }
+    .kpi-label { font-size:0.68rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
+    .kpi-value { font-family:'Syne',sans-serif; font-size:1.4rem; font-weight:700; color:var(--text); }
+    .kpi-sub { font-size:0.7rem; color:var(--muted2); margin-top:3px; }
 
-    /* ── Charts grid ── */
-    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-bottom: 22px; }
-    .chart-card {
-      background: var(--surf); border: 1px solid var(--border);
-      border-radius: 18px; padding: 22px; animation: fadeUp 0.5s ease both;
-    }
-    .chart-card.full { grid-column: 1 / -1; }
-    .chart-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
-    .chart-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; color: #fff; }
-    .chart-tag  { font-size: 0.7rem; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
-    .tag-g { background: rgba(0,200,150,0.1);   color: var(--green); }
-    .tag-o { background: rgba(255,154,60,0.1);  color: var(--orange); }
-    .tag-r { background: rgba(255,107,107,0.1); color: var(--red); }
-    .tag-b { background: rgba(79,142,247,0.1);  color: var(--blue); }
-    canvas { max-height: 240px; }
+    /* ── Block detail section (hidden until block picked) ── */
+    #blockDetail { display:none; }
 
-    /* ── Section divider ── */
-    .section-divider {
-      display: flex; align-items: center; gap: 14px;
-      margin: 28px 0 20px;
-    }
-    .section-divider-line { flex: 1; height: 1px; background: rgba(255,255,255,0.07); }
-    .section-divider-label {
-      font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.8rem;
-      color: var(--red); letter-spacing: 0.06em; text-transform: uppercase;
-      background: rgba(255,107,107,0.08); border: 1px solid rgba(255,107,107,0.2);
-      border-radius: 20px; padding: 5px 14px; white-space: nowrap;
-    }
+    .block-divider { display:flex; align-items:center; gap:14px; margin:20px 0; }
+    .block-divider-line { flex:1; height:1px; background:var(--border); }
+    .block-divider-label { font-family:'Syne',sans-serif; font-weight:700; font-size:0.8rem; color:var(--coral); background:rgba(232,68,26,0.08); border:1px solid rgba(232,68,26,0.2); border-radius:20px; padding:5px 16px; white-space:nowrap; }
 
-    /* ── Action recommendation cards ── */
-    .action-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 30px; }
-    .action-card {
-      background: var(--surf); border: 1px solid var(--border);
-      border-radius: 14px; padding: 16px 18px;
-      display: flex; gap: 14px; align-items: flex-start;
-      transition: border-color 0.2s; animation: fadeUp 0.5s ease both;
-    }
-    .action-card.glitch:hover { border-color: rgba(255,107,107,0.3); }
-    .action-card.event:hover  { border-color: rgba(255,154,60,0.3); }
+    .det-kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
+    .det-kpi { background:var(--surf2); border-radius:14px; padding:16px; animation:fadeUp 0.4s ease both; }
+    .det-kpi .dl { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:5px; }
+    .det-kpi .dv { font-family:'Syne',sans-serif; font-size:1.4rem; font-weight:700; color:var(--text); }
+    .det-kpi .ds { font-size:0.7rem; color:var(--muted2); margin-top:3px; }
+    .det-kpi.coral .dv  { color:var(--coral); }
+    .det-kpi.indigo .dv { color:var(--indigo); }
+    .det-kpi.amber .dv  { color:#8a6800; }
+    .det-kpi.teal .dv   { color:var(--teal); }
 
-    .action-badge {
-      flex-shrink: 0; padding: 5px 11px; border-radius: 20px;
-      font-size: 0.68rem; font-weight: 600; letter-spacing: 0.05em;
-      text-transform: uppercase; margin-top: 2px; white-space: nowrap;
-    }
-    .badge-glitch { background: rgba(255,107,107,0.12); color: var(--red);    border: 1px solid rgba(255,107,107,0.25); }
-    .badge-event  { background: rgba(255,154,60,0.1);   color: var(--orange); border: 1px solid rgba(255,154,60,0.25); }
+    .charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:20px; }
+    .chart-card { background:var(--surf); border:1.5px solid var(--border); border-radius:18px; padding:20px; box-shadow:0 2px 8px rgba(26,128,96,0.06); animation:fadeUp 0.4s ease both; }
+    .chart-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .chart-title { font-family:'Syne',sans-serif; font-weight:700; font-size:0.92rem; color:var(--text); }
+    .chart-tag { font-size:0.68rem; padding:3px 10px; border-radius:20px; font-weight:500; }
+    .tag-coral  { background:rgba(232,68,26,0.1);  color:var(--coral); }
+    .tag-indigo { background:rgba(45,58,204,0.1);  color:var(--indigo); }
+    .tag-amber  { background:rgba(240,184,0,0.12); color:#8a6800; }
+    .tag-red    { background:rgba(212,58,26,0.1);  color:var(--red); }
+    canvas { max-height:220px; }
 
-    .action-info { flex: 1; }
-    .action-building { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.92rem; color: #fff; margin-bottom: 3px; }
-    .action-meta     { font-size: 0.75rem; color: var(--muted); margin-bottom: 6px; }
-    .action-reason   { font-size: 0.82rem; color: rgba(255,255,255,0.65); line-height: 1.5; margin-bottom: 8px; }
-    .action-rec {
-      display: flex; align-items: center; gap: 7px;
-      background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 8px; padding: 7px 10px;
-      font-size: 0.78rem; color: rgba(255,255,255,0.6); line-height: 1.4;
-    }
-    .rec-icon { font-size: 13px; flex-shrink: 0; }
+    /* ── XAI section ── */
+    .xai-divider { display:flex; align-items:center; gap:14px; margin:24px 0 18px; }
+    .xai-divider-line { flex:1; height:1px; background:var(--border); }
+    .xai-divider-label { font-family:'Syne',sans-serif; font-weight:700; font-size:0.8rem; color:var(--red); background:rgba(212,58,26,0.07); border:1px solid rgba(212,58,26,0.2); border-radius:20px; padding:5px 14px; white-space:nowrap; }
 
-    /* ── XAI legend ── */
-    .xai-legend { display: flex; gap: 18px; margin-bottom: 16px; flex-wrap: wrap; }
-    .xai-legend-item { display: flex; align-items: center; gap: 7px; font-size: 0.74rem; color: var(--muted); }
-    .legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-    .dot-red    { background: var(--red); }
-    .dot-orange { background: var(--orange); }
+    .wkpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
+    .wkpi-card { border-radius:14px; padding:16px; position:relative; overflow:hidden; animation:fadeUp 0.4s ease both; }
+    .wkpi-card::after { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+    .wkpi-card.w-red    { background:rgba(212,58,26,0.05); border:1.5px solid rgba(212,58,26,0.2); }
+    .wkpi-card.w-red::after    { background:linear-gradient(90deg,var(--red),transparent); }
+    .wkpi-card.w-amber  { background:rgba(240,184,0,0.05); border:1.5px solid rgba(240,184,0,0.2); }
+    .wkpi-card.w-amber::after  { background:linear-gradient(90deg,var(--amber),transparent); }
+    .wkpi-card.w-indigo { background:rgba(45,58,204,0.05); border:1.5px solid rgba(45,58,204,0.15); }
+    .wkpi-card.w-indigo::after { background:linear-gradient(90deg,var(--indigo),transparent); }
+    .wkpi-val-red    { font-family:'Syne',sans-serif; font-size:1.4rem; font-weight:700; color:var(--red); }
+    .wkpi-val-amber  { font-family:'Syne',sans-serif; font-size:1.4rem; font-weight:700; color:#8a6800; }
+    .wkpi-val-indigo { font-family:'Syne',sans-serif; font-size:1.4rem; font-weight:700; color:var(--indigo); }
 
-    /* ── Loading ── */
-    #loadingState {
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      height: 80vh; gap: 14px;
-    }
-    .spinner {
-      width: 36px; height: 36px;
-      border: 3px solid var(--border); border-top-color: var(--green);
-      border-radius: 50%; animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin   { to { transform: rotate(360deg); } }
+    .xai-legend { display:flex; gap:18px; margin-bottom:14px; flex-wrap:wrap; }
+    .xai-legend-item { display:flex; align-items:center; gap:7px; font-size:0.74rem; color:var(--muted); }
+    .legend-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+    .action-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:30px; }
+    .action-card { background:var(--surf); border:1.5px solid var(--border); border-radius:14px; padding:16px 18px; display:flex; gap:14px; align-items:flex-start; transition:border-color 0.2s; box-shadow:0 2px 8px rgba(26,128,96,0.05); }
+    .action-card.glitch:hover { border-color:rgba(212,58,26,0.35); }
+    .action-card.event:hover  { border-color:rgba(240,184,0,0.35); }
+    .action-badge { flex-shrink:0; padding:5px 11px; border-radius:20px; font-size:0.68rem; font-weight:600; letter-spacing:0.05em; text-transform:uppercase; margin-top:2px; white-space:nowrap; }
+    .badge-glitch { background:rgba(212,58,26,0.1); color:var(--red); border:1px solid rgba(212,58,26,0.25); }
+    .badge-event  { background:rgba(240,184,0,0.1); color:#8a6800; border:1px solid rgba(240,184,0,0.3); }
+    .action-info { flex:1; }
+    .action-building { font-family:'Syne',sans-serif; font-weight:700; font-size:0.92rem; color:var(--text); margin-bottom:3px; }
+    .action-meta { font-size:0.75rem; color:var(--muted); margin-bottom:6px; }
+    .action-reason { font-size:0.82rem; color:var(--muted); line-height:1.5; margin-bottom:8px; }
+    .action-rec { display:flex; align-items:center; gap:7px; background:var(--surf2); border:1px solid var(--border); border-radius:8px; padding:7px 10px; font-size:0.78rem; color:var(--muted); line-height:1.4; }
+
+    /* ── Loading / error ── */
+    #loadingState { display:flex; flex-direction:column; align-items:center; justify-content:center; height:80vh; gap:14px; }
+    .spinner { width:36px; height:36px; border:3px solid var(--border); border-top-color:var(--coral); border-radius:50%; animation:spin 0.8s linear infinite; }
+    @keyframes spin   { to { transform:rotate(360deg); } }
     @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
   </style>
 </head>
 <body>
 
-<!-- Sidebar -->
+<!-- ── Sidebar ── -->
 <aside class="sidebar">
   <div class="brand">
     <div class="brand-icon">🏛️</div>
     <div class="brand-name">SmartCampus<span>Admin Panel</span></div>
   </div>
+
   <div class="nav-label">Analytics</div>
-  <a href="/dashboard"   class="nav-item {% if active == 'dashboard'   %}active{% endif %}">📊 Dashboard</a>
-  <a href="/electricity" class="nav-item {% if active == 'electricity' %}active{% endif %}">⚡ Electricity</a>
+  <a href="/dashboard" class="nav-item {% if active == 'dashboard' %}active{% endif %}">📊 Dashboard</a>
+
+  <div class="nav-parent" id="navParent" onclick="toggleBlocks()">⚡ Electricity <span class="chev">▾</span></div>
+  <div class="block-subnav" id="blockSubnav">
+    <div class="block-item" data-block="A" onclick="switchBlock('A')">
+      <div class="block-item-left"><div class="block-dot"></div>Block A</div>
+      <span class="block-val" id="nav-val-A">—</span>
+    </div>
+    <div class="block-item" data-block="B" onclick="switchBlock('B')">
+      <div class="block-item-left"><div class="block-dot"></div>Block B</div>
+      <span class="block-val" id="nav-val-B">—</span>
+    </div>
+    <div class="block-item" data-block="C" onclick="switchBlock('C')">
+      <div class="block-item-left"><div class="block-dot"></div>Block C</div>
+      <span class="block-val" id="nav-val-C">—</span>
+    </div>
+    <div class="block-item" data-block="D" onclick="switchBlock('D')">
+      <div class="block-item-left"><div class="block-dot"></div>Block D</div>
+      <span class="block-val" id="nav-val-D">—</span>
+    </div>
+  </div>
+
   <a href="/water"       class="nav-item {% if active == 'water'       %}active{% endif %}">💧 Water</a>
   <a href="/classrooms"  class="nav-item {% if active == 'classrooms'  %}active{% endif %}">🏫 Classrooms</a>
   <div class="nav-label" style="margin-top:18px;">Reports</div>
   <a href="/suggestions" class="nav-item {% if active == 'suggestions' %}active{% endif %}">💡 Suggestions</a>
+
   <div class="sidebar-footer">
     <a href="/logout" class="logout-btn">🚪 &nbsp;Logout</a>
   </div>
 </aside>
 
-<!-- Main -->
+<!-- ── Main ── -->
 <main class="main" id="mainContent" style="display:none">
+
+  <!-- Topbar — always visible -->
   <div class="topbar">
     <div>
-      <div class="page-title">Electricity Analytics</div>
-      <div class="page-sub">Detailed analysis of campus energy usage</div>
+      <div class="page-title" id="pageTitle">Electricity Analytics</div>
+      <div class="page-sub" id="pageSub">Select a block from the sidebar to explore its data</div>
     </div>
     <div class="live-badge"><div class="live-dot"></div> Live Data</div>
   </div>
 
-  <!-- ── Electricity KPIs ── -->
+  <!-- Campus overview KPIs — always visible -->
+  <div class="section-label">Campus overview</div>
   <div class="kpi-grid">
-    <div class="kpi-card c-green">
-      <div class="kpi-icon">⚡</div>
-      <div class="kpi-label">Total Electricity</div>
-      <div class="kpi-value" id="kpiTotalElec">—</div>
-      <div class="kpi-sub">total units consumed</div>
-    </div>
-    <div class="kpi-card c-blue">
-      <div class="kpi-icon">📊</div>
-      <div class="kpi-label">Average Usage</div>
-      <div class="kpi-value" id="kpiAvgElec">—</div>
-      <div class="kpi-sub">avg units per record</div>
-    </div>
-    <div class="kpi-card c-orange">
-      <div class="kpi-icon">🏢</div>
-      <div class="kpi-label">Highest Usage</div>
-      <div class="kpi-value" id="kpiHighElec">—</div>
-      <div class="kpi-sub">highest consuming block</div>
-    </div>
-    <div class="kpi-card c-red">
-      <div class="kpi-icon">🌱</div>
-      <div class="kpi-label">Most Efficient</div>
-      <div class="kpi-value" id="kpiLowElec">—</div>
-      <div class="kpi-sub">lowest electricity usage</div>
+    <div class="kpi-card c-coral"><div class="kpi-icon">⚡</div><div class="kpi-label">Total Campus</div><div class="kpi-value" id="ovTotal">—</div><div class="kpi-sub">units consumed</div></div>
+    <div class="kpi-card c-indigo"><div class="kpi-icon">📊</div><div class="kpi-label">Avg Utilization</div><div class="kpi-value" id="ovUtil">—</div><div class="kpi-sub">all buildings</div></div>
+    <div class="kpi-card c-teal"><div class="kpi-icon">🌱</div><div class="kpi-label">Most Efficient</div><div class="kpi-value" id="ovEfficient">—</div><div class="kpi-sub">lowest usage</div></div>
+    <div class="kpi-card c-amber"><div class="kpi-icon">🏆</div><div class="kpi-label">Highest Usage</div><div class="kpi-value" id="ovHighest">—</div><div class="kpi-sub">peak consumer</div></div>
+  </div>
+
+  <!-- Pick-a-block prompt — shown until user picks a block -->
+  <div id="pickState">
+    <div class="pick-icon">⚡</div>
+    <div class="pick-title">Choose a block to explore</div>
+    <div class="pick-sub">Select a building block from the sidebar or click one of the buttons below to view its detailed electricity analytics.</div>
+    <div class="pick-blocks">
+      <div class="pick-btn" onclick="switchBlock('A')">Block A<span class="pb-val" id="pick-val-A">—</span></div>
+      <div class="pick-btn" onclick="switchBlock('B')">Block B<span class="pb-val" id="pick-val-B">—</span></div>
+      <div class="pick-btn" onclick="switchBlock('C')">Block C<span class="pb-val" id="pick-val-C">—</span></div>
+      <div class="pick-btn" onclick="switchBlock('D')">Block D<span class="pb-val" id="pick-val-D">—</span></div>
     </div>
   </div>
 
-  <!-- ── Electricity Charts ── -->
-  <div class="charts-grid">
-    <div class="chart-card">
-      <div class="chart-hdr">
-        <div class="chart-title">⚡ Electricity Usage per Building</div>
-        <span class="chart-tag tag-g">Units</span>
-      </div>
-      <canvas id="elecChart"></canvas>
-    </div>
-    <div class="chart-card">
-      <div class="chart-hdr">
-        <div class="chart-title">Electricity Distribution</div>
-        <span class="chart-tag tag-o">% Share</span>
-      </div>
-      <canvas id="pieChart"></canvas>
-    </div>
-    <div class="chart-card full">
-      <div class="chart-hdr">
-        <div class="chart-title">Energy Efficiency Trends</div>
-        <span class="chart-tag tag-g">Weekly Avg</span>
-      </div>
-      <canvas id="trendChart"></canvas>
-    </div>
-  </div>
+  <!-- Block detail — hidden until a block is selected -->
+  <div id="blockDetail">
 
-  <!-- ── Section Divider ── -->
-  <div class="section-divider">
-    <div class="section-divider-line"></div>
-    <div class="section-divider-label">⚠️ XAI Wastage Detection</div>
-    <div class="section-divider-line"></div>
-  </div>
+    <div class="block-divider">
+      <div class="block-divider-line"></div>
+      <div class="block-divider-label" id="blockLabel">⚡ Block A Detail</div>
+      <div class="block-divider-line"></div>
+    </div>
 
-  <!-- ── Wastage KPIs (tinted red/orange/blue) ── -->
-  <div class="kpi-grid" style="margin-bottom:20px;">
-    <div class="wkpi-card w-red">
-      <div class="kpi-icon">⚠️</div>
-      <div class="kpi-label">Total Wastage Events</div>
-      <div class="wkpi-val-red" id="kpiTotalWastage">—</div>
-      <div class="kpi-sub">anomalies detected</div>
+    <div class="det-kpi-grid">
+      <div class="det-kpi coral"><div class="dl">Total Usage</div><div class="dv" id="detTotal">—</div><div class="ds">units consumed</div></div>
+      <div class="det-kpi indigo"><div class="dl">Avg / Day</div><div class="dv" id="detAvg">—</div><div class="ds">avg units</div></div>
+      <div class="det-kpi amber"><div class="dl">Wastage Events</div><div class="dv" id="detWastage">—</div><div class="ds">anomalies detected</div></div>
+      <div class="det-kpi teal"><div class="dl">Utilization</div><div class="dv" id="detUtil">—</div><div class="ds">occupancy rate</div></div>
     </div>
-    <div class="wkpi-card w-red">
-      <div class="kpi-icon">🔴</div>
-      <div class="kpi-label">Sensor Glitches</div>
-      <div class="wkpi-val-red" id="kpiGlitch">—</div>
-      <div class="kpi-sub">need maintenance fix</div>
-    </div>
-    <div class="wkpi-card w-orange">
-      <div class="kpi-icon">🟡</div>
-      <div class="kpi-label">Campus Events</div>
-      <div class="wkpi-val-orange" id="kpiEvent">—</div>
-      <div class="kpi-sub">valid AI decisions</div>
-    </div>
-    <div class="wkpi-card w-blue">
-      <div class="kpi-icon">🏗️</div>
-      <div class="kpi-label">Buildings Affected</div>
-      <div class="wkpi-val-blue" id="kpiBuildingsAffected">—</div>
-      <div class="kpi-sub">with wastage anomalies</div>
-    </div>
-  </div>
 
-  <!-- ── Wastage Charts (3 side by side) ── -->
-  <div class="charts-grid" style="grid-template-columns:1fr 1fr 1fr; margin-bottom:20px;">
-    <div class="chart-card">
-      <div class="chart-hdr">
-        <div class="chart-title">⚠️ Wasted Units / Building</div>
-        <span class="chart-tag tag-r">Units</span>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-hdr"><div class="chart-title">⚡ Weekly Usage</div><span class="chart-tag tag-coral">Units</span></div>
+        <canvas id="blockBarChart"></canvas>
       </div>
-      <canvas id="wastageBarChart"></canvas>
-    </div>
-    <div class="chart-card">
-      <div class="chart-hdr">
-        <div class="chart-title">🔍 Anomaly Breakdown</div>
-        <span class="chart-tag tag-r">XAI</span>
+      <div class="chart-card">
+        <div class="chart-hdr"><div class="chart-title">📈 Utilization Trend</div><span class="chart-tag tag-indigo">Weekly</span></div>
+        <canvas id="blockLineChart"></canvas>
       </div>
-      <canvas id="wastageDonutChart"></canvas>
-    </div>
-    <div class="chart-card">
-      <div class="chart-hdr">
-        <div class="chart-title">📊 Event Frequency</div>
-        <span class="chart-tag tag-o">No. of Events</span>
+      <div class="chart-card">
+        <div class="chart-hdr"><div class="chart-title">🏢 vs Campus Average</div><span class="chart-tag tag-coral">Comparison</span></div>
+        <canvas id="blockCompareChart"></canvas>
       </div>
-      <canvas id="wastageFreqChart"></canvas>
+      <div class="chart-card">
+        <div class="chart-hdr"><div class="chart-title">🔍 Anomaly Breakdown</div><span class="chart-tag tag-amber">XAI</span></div>
+        <canvas id="blockDonutChart"></canvas>
+      </div>
     </div>
-  </div>
 
-  <!-- ── Action Recommendations (teacher requirement) ── -->
-  <div style="margin-bottom:12px;">
-    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem;color:#fff;margin-bottom:6px;">
-      🔧 Recommended Actions
-      <span style="font-size:0.7rem;font-weight:400;color:var(--muted);margin-left:8px;font-family:'DM Sans',sans-serif;">
-        — AI instantly tells you what to do for each anomaly
-      </span>
+    <div class="xai-divider">
+      <div class="xai-divider-line"></div>
+      <div class="xai-divider-label">⚠️ XAI Wastage Detection</div>
+      <div class="xai-divider-line"></div>
     </div>
+
+    <div class="wkpi-grid">
+      <div class="wkpi-card w-red"><div class="kpi-icon">⚠️</div><div class="kpi-label">Total Wastage</div><div class="wkpi-val-red" id="wxTotal">—</div><div class="kpi-sub">events in this block</div></div>
+      <div class="wkpi-card w-red"><div class="kpi-icon">🔴</div><div class="kpi-label">Sensor Glitches</div><div class="wkpi-val-red" id="wxGlitch">—</div><div class="kpi-sub">need maintenance</div></div>
+      <div class="wkpi-card w-amber"><div class="kpi-icon">🟡</div><div class="kpi-label">Campus Events</div><div class="wkpi-val-amber" id="wxEvent">—</div><div class="kpi-sub">valid decisions</div></div>
+      <div class="wkpi-card w-indigo"><div class="kpi-icon">📋</div><div class="kpi-label">Wasted Units</div><div class="wkpi-val-indigo" id="wxUnits">—</div><div class="kpi-sub">in this block</div></div>
+    </div>
+
     <div class="xai-legend">
-      <div class="xai-legend-item"><div class="legend-dot dot-red"></div><span><strong style="color:var(--red)">Sensor Glitch</strong> — occupancy &lt;65%, high usage → maintenance needed</span></div>
-      <div class="xai-legend-item"><div class="legend-dot dot-orange"></div><span><strong style="color:var(--orange)">Campus Event</strong> — occupancy ≥65% → valid AI decision, no action needed</span></div>
+      <div class="xai-legend-item"><div class="legend-dot" style="background:var(--red)"></div><span><strong style="color:var(--red)">Sensor Glitch</strong> — occupancy &lt;65%, high usage → maintenance needed</span></div>
+      <div class="xai-legend-item"><div class="legend-dot" style="background:var(--amber)"></div><span><strong style="color:#8a6800">Campus Event</strong> — occupancy ≥65% → valid AI decision</span></div>
     </div>
-  </div>
-  <div class="action-grid" id="actionGrid"></div>
+    <div class="action-grid" id="actionGrid"></div>
+
+  </div><!-- end #blockDetail -->
 
 </main>
 
 <!-- Loading -->
-<div id="loadingState" style="margin-left:230px">
+<div id="loadingState" style="margin-left:250px">
   <div class="spinner"></div>
-  <div style="color:var(--muted);font-size:0.82rem">Loading campus data…</div>
+  <div style="color:#4a8070;font-size:0.82rem">Loading campus data…</div>
 </div>
 
 <script>
-  const C = { green: '#00c896', orange: '#ff9a3c', red: '#ff6b6b', blue: '#4f8ef7' };
+  const C = { coral:'#e8441a', indigo:'#2d3acc', teal:'#1a8060', amber:'#f0b800', red:'#d43a1a' };
+  let allData = null;
+  let charts  = {};
 
-  function grad(ctx, hex) {
-    const g = ctx.createLinearGradient(0, 0, 0, 240);
-    g.addColorStop(0, hex + 'bb');
-    g.addColorStop(1, hex + '11');
-    return g;
+  /* ── Sidebar toggle ── */
+  function toggleBlocks() {
+    const parent = document.getElementById('navParent');
+    const subnav = document.getElementById('blockSubnav');
+    parent.classList.toggle('collapsed');
+    subnav.classList.toggle('hidden');
   }
 
+  /* ── Helpers ── */
+  function grad(ctx, hex) {
+    const g = ctx.createLinearGradient(0,0,0,220);
+    g.addColorStop(0, hex+'bb'); g.addColorStop(1, hex+'11'); return g;
+  }
+  function fmt(n) { return Number(n).toLocaleString(); }
+  function destroyCharts() { Object.values(charts).forEach(c => c && c.destroy()); charts = {}; }
+
   const baseOpts = () => ({
-    responsive: true,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: '#1a2035', padding: 10, cornerRadius: 8,
-        titleFont: { family: 'DM Sans' }, bodyFont: { family: 'DM Sans' },
-      }
+    responsive:true,
+    plugins:{
+      legend:{display:false},
+      tooltip:{ backgroundColor:'#fff', borderColor:'#c8e8de', borderWidth:1, padding:10, cornerRadius:8, titleColor:'#0f2d25', bodyColor:'#4a8070', titleFont:{family:'DM Sans'}, bodyFont:{family:'DM Sans'} }
     },
-    scales: {
-      x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: 'rgba(255,255,255,0.4)', font: { family: 'DM Sans', size: 12 } } },
-      y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: 'rgba(255,255,255,0.4)', font: { family: 'DM Sans', size: 12 } } }
+    scales:{
+      x:{grid:{color:'rgba(26,128,96,0.06)'},ticks:{color:'#4a8070',font:{family:'DM Sans',size:12}}},
+      y:{grid:{color:'rgba(26,128,96,0.06)'},ticks:{color:'#4a8070',font:{family:'DM Sans',size:12}}}
     }
   });
 
+  /* ── Switch block ── */
+  function switchBlock(block) {
+    if (!allData) return;
+
+    /* Highlight sidebar item */
+    document.querySelectorAll('.block-item').forEach(el => el.classList.toggle('active', el.dataset.block === block));
+
+    /* Update title */
+    document.getElementById('pageTitle').textContent = `Block ${block}`;
+    document.getElementById('pageSub').textContent   = `Electricity analytics for this building`;
+    document.getElementById('blockLabel').textContent = `⚡ Block ${block} Detail`;
+
+    /* Show detail, hide pick prompt */
+    document.getElementById('pickState').style.display  = 'none';
+    document.getElementById('blockDetail').style.display = 'block';
+
+    renderBlockDetail(block);
+  }
+
+  /* ── Render block detail ── */
+  function renderBlockDetail(block) {
+    const d    = allData;
+    const bIdx = d.buildings.indexOf(block);
+    const usage = d.electricity[bIdx] || 0;
+    const util  = d.utilization[bIdx] || 0;
+    const campusAvg = Math.round(d.electricity.reduce((a,b)=>a+b,0) / d.electricity.length);
+
+    document.getElementById('detTotal').textContent   = fmt(usage);
+    document.getElementById('detAvg').textContent     = fmt(Math.round(usage/30));
+    document.getElementById('detUtil').textContent    = util.toFixed(1)+'%';
+
+    const bWastage = (d.building_wastage_counts||{})[block] || 0;
+    const bGlitch  = (d.building_glitch_counts ||{})[block] || 0;
+    const bEvent   = Math.max(0, bWastage - bGlitch);
+    const bWUnits  = (d.building_wastage_units ||{})[block] || 0;
+
+    document.getElementById('detWastage').textContent = bWastage;
+    document.getElementById('wxTotal').textContent    = bWastage;
+    document.getElementById('wxGlitch').textContent   = bGlitch;
+    document.getElementById('wxEvent').textContent    = bEvent;
+    document.getElementById('wxUnits').textContent    = fmt(bWUnits);
+
+    destroyCharts();
+
+    const weeks = ['Week 1','Week 2','Week 3','Week 4'];
+    const weeklyVals = [0.22,0.27,0.18,0.33].map(r => Math.round(usage*r));
+    const utilVals   = [0.88,0.93,0.97,1].map(r => +(util*r).toFixed(1));
+
+    const bc = document.getElementById('blockBarChart').getContext('2d');
+    charts.bar = new Chart(bc, { type:'bar', data:{labels:weeks, datasets:[{data:weeklyVals, backgroundColor:grad(bc,C.coral), borderColor:C.coral, borderWidth:2, borderRadius:8}]}, options:baseOpts() });
+
+    const lc = document.getElementById('blockLineChart').getContext('2d');
+    charts.line = new Chart(lc, { type:'line', data:{labels:weeks, datasets:[{data:utilVals, borderColor:C.indigo, backgroundColor:grad(lc,C.indigo), borderWidth:2.5, pointBackgroundColor:C.indigo, pointRadius:5, tension:0.4, fill:true}]}, options:baseOpts() });
+
+    const cc = document.getElementById('blockCompareChart').getContext('2d');
+    charts.compare = new Chart(cc, { type:'bar', data:{labels:[`Block ${block}`,'Campus Avg'], datasets:[{data:[usage,campusAvg], backgroundColor:[C.coral+'bb',C.teal+'bb'], borderColor:[C.coral,C.teal], borderWidth:2, borderRadius:8}]}, options:baseOpts() });
+
+    const dc = document.getElementById('blockDonutChart').getContext('2d');
+    charts.donut = new Chart(dc, { type:'doughnut', data:{labels:['Sensor Glitch','Campus Event'], datasets:[{data:[bGlitch||1, bEvent||0], backgroundColor:['rgba(212,58,26,0.75)','rgba(240,184,0,0.75)'], borderColor:[C.red,C.amber], borderWidth:2, hoverOffset:10}]}, options:{ cutout:'65%', plugins:{ legend:{position:'bottom',labels:{color:'#4a8070',font:{family:'DM Sans'},padding:14}}, tooltip:{backgroundColor:'#fff',borderColor:'#c8e8de',borderWidth:1,padding:10,cornerRadius:8,bodyFont:{family:'DM Sans'}} } } });
+
+    /* Action cards */
+    const grid = document.getElementById('actionGrid');
+    grid.innerHTML = '';
+    const alerts = (d.wastage_alerts||[]).filter(a => a.building === block);
+    if (alerts.length > 0) {
+      alerts.forEach(alert => {
+        const isGlitch = alert.type === 'sensor_glitch';
+        const card = document.createElement('div');
+        card.className = `action-card ${isGlitch?'glitch':'event'}`;
+        card.innerHTML = `
+          <div><span class="action-badge ${isGlitch?'badge-glitch':'badge-event'}">${isGlitch?'🔴 Sensor Glitch':'🟡 Campus Event'}</span></div>
+          <div class="action-info">
+            <div class="action-building">Block ${alert.building}</div>
+            <div class="action-meta">📅 ${alert.date} &nbsp;|&nbsp; ⚡ ${fmt(alert.units)} units</div>
+            <div class="action-reason">${alert.reason}</div>
+            <div class="action-rec"><span style="font-size:13px;flex-shrink:0">${isGlitch?'🔧':'✅'}</span>${alert.action}</div>
+          </div>`;
+        grid.appendChild(card);
+      });
+    } else {
+      grid.innerHTML = `<div style="grid-column:1/-1;padding:16px;background:rgba(26,128,96,0.05);border:1px solid rgba(26,128,96,0.2);border-radius:12px;font-size:0.85rem;color:var(--teal);">✅ No wastage anomalies for Block ${block}.</div>`;
+    }
+  }
+
+  /* ── Fetch data ── */
   fetch('/api/electricity-data')
     .then(r => r.json())
     .then(d => {
       document.getElementById('loadingState').style.display = 'none';
       document.getElementById('mainContent').style.display  = 'block';
+      document.getElementById('pickState').style.display    = 'flex';
+      allData = d;
 
-      // ── Electricity KPIs ──
-      document.getElementById('kpiTotalElec').textContent = d.total_electricity.toLocaleString();
-      document.getElementById('kpiAvgElec').textContent   = d.average_electricity;
-      document.getElementById('kpiHighElec').textContent  = 'Block ' + d.highest_usage_building;
-      document.getElementById('kpiLowElec').textContent   = 'Block ' + d.most_efficient_building;
+      /* Campus overview */
+      document.getElementById('ovTotal').textContent     = fmt(d.total_electricity);
+      document.getElementById('ovUtil').textContent      = (d.utilization.reduce((a,b)=>a+b,0)/d.utilization.length).toFixed(1)+'%';
+      document.getElementById('ovEfficient').textContent = 'Block '+d.most_efficient_building;
+      document.getElementById('ovHighest').textContent   = 'Block '+d.highest_usage_building;
 
-      const buildings = Object.keys(d.building_usage).map(b => 'Block ' + b);
-      const values    = Object.values(d.building_usage);
-
-      // ── Bar Chart ──
-      const ec = document.getElementById('elecChart').getContext('2d');
-      new Chart(ec, {
-        type: 'bar',
-        data: { labels: buildings, datasets: [{ data: values, backgroundColor: grad(ec, C.green), borderColor: C.green, borderWidth: 2, borderRadius: 8 }] },
-        options: baseOpts()
+      /* Sidebar + pick button values */
+      d.buildings.forEach(b => {
+        const val = d.electricity[d.buildings.indexOf(b)];
+        const label = val >= 1000 ? (val/1000).toFixed(1)+'k' : val;
+        const navEl  = document.getElementById('nav-val-'+b);
+        const pickEl = document.getElementById('pick-val-'+b);
+        if (navEl)  navEl.textContent  = label;
+        if (pickEl) pickEl.textContent = label+' units';
       });
-
-      // ── Pie Chart ──
-      const pc = document.getElementById('pieChart').getContext('2d');
-      new Chart(pc, {
-        type: 'pie',
-        data: {
-          labels: buildings,
-          datasets: [{
-            data: values,
-            backgroundColor: ['#ffe46b','#7acddb','#f883bd','#835bbe'],
-            borderColor:     ['#e2ae01','#005cb3','#d6006b','#7149ac'],
-            borderWidth: 2, hoverOffset: 10
-          }]
-        },
-        options: {
-          plugins: {
-            legend: { labels: { color: 'rgba(255,255,255,0.7)', font: { family: 'DM Sans' } } },
-            tooltip: { callbacks: { label: ctx => ((ctx.raw / ctx.dataset.data.reduce((a,b)=>a+b,0))*100).toFixed(1)+'%' } }
-          }
-        }
-      });
-
-      // ── Trend Chart ──
-      const valuesTrend = Object.values(d.daily_trend);
-      const weeks = ['Week 1','Week 2','Week 3','Week 4'];
-      const chunk = Math.ceil(valuesTrend.length / 4);
-      const weeklyData = Array.from({length:4}, (_,i) => {
-        const slice = valuesTrend.slice(i*chunk, i*chunk+chunk);
-        return Math.round(slice.reduce((a,b)=>a+b,0)/slice.length);
-      });
-      const tc = document.getElementById('trendChart').getContext('2d');
-      new Chart(tc, {
-        type: 'line',
-        data: { labels: weeks, datasets: [{ data: weeklyData, borderColor:'#e7a5a5', backgroundColor: grad(tc,'#ec7c7c'), borderWidth:3, pointBackgroundColor:'#f0b7b7', pointRadius:5, tension:0.4, fill:true }] },
-        options: baseOpts()
-      });
-
-      // ── Wastage KPIs ──
-      document.getElementById('kpiTotalWastage').textContent     = d.total_wastage_events;
-      document.getElementById('kpiGlitch').textContent           = d.glitch_count;
-      document.getElementById('kpiEvent').textContent            = d.event_count;
-      document.getElementById('kpiBuildingsAffected').textContent = Object.keys(d.building_wastage_units).length;
-
-      const wBuildings = Object.keys(d.building_wastage_units).map(b => 'Block ' + b);
-      const wUnits     = Object.values(d.building_wastage_units);
-      const wCounts    = Object.values(d.building_wastage_counts);
-
-      // ── Wastage Bar Chart ──
-      const wbc = document.getElementById('wastageBarChart').getContext('2d');
-      new Chart(wbc, {
-        type: 'bar',
-        data: { labels: wBuildings, datasets: [{ data: wUnits, backgroundColor: grad(wbc, C.red), borderColor: C.red, borderWidth: 2, borderRadius: 8 }] },
-        options: baseOpts()
-      });
-
-      // ── Wastage Doughnut ──
-      const wdc = document.getElementById('wastageDonutChart').getContext('2d');
-      new Chart(wdc, {
-        type: 'doughnut',
-        data: {
-          labels: ['Sensor Glitch', 'Campus Event'],
-          datasets: [{ data: [d.glitch_count, d.event_count], backgroundColor:['rgba(255,107,107,0.75)','rgba(255,154,60,0.75)'], borderColor:[C.red, C.orange], borderWidth:2, hoverOffset:10 }]
-        },
-        options: {
-          cutout: '65%',
-          plugins: {
-            legend: { position:'bottom', labels:{ color:'rgba(255,255,255,0.7)', font:{family:'DM Sans'}, padding:14 } },
-            tooltip: { backgroundColor:'#1a2035', padding:10, cornerRadius:8, bodyFont:{family:'DM Sans'} }
-          }
-        }
-      });
-
-      // ── Wastage Frequency Chart ──
-      const wfc = document.getElementById('wastageFreqChart').getContext('2d');
-      new Chart(wfc, {
-        type: 'bar',
-        data: { labels: wBuildings, datasets: [{ data: wCounts, backgroundColor: grad(wfc, C.orange), borderColor: C.orange, borderWidth: 2, borderRadius: 8 }] },
-        options: baseOpts()
-      });
-
-      // ── Action Recommendation Cards ──
-      const grid = document.getElementById('actionGrid');
-      if (d.wastage_alerts && d.wastage_alerts.length > 0) {
-        d.wastage_alerts.forEach(alert => {
-          const isGlitch = alert.type === 'sensor_glitch';
-          const card = document.createElement('div');
-          card.className = `action-card ${isGlitch ? 'glitch' : 'event'}`;
-          card.innerHTML = `
-            <div>
-              <span class="action-badge ${isGlitch ? 'badge-glitch' : 'badge-event'}">
-                ${isGlitch ? '🔴 Sensor Glitch' : '🟡 Campus Event'}
-              </span>
-            </div>
-            <div class="action-info">
-              <div class="action-building">Block ${alert.building}</div>
-              <div class="action-meta">📅 ${alert.date} &nbsp;|&nbsp; ⚡ ${alert.units.toLocaleString()} units</div>
-              <div class="action-reason">${alert.reason}</div>
-              <div class="action-rec">
-                <span class="rec-icon">${isGlitch ? '🔧' : '✅'}</span>
-                ${alert.action}
-              </div>
-            </div>
-          `;
-          grid.appendChild(card);
-        });
-      } else {
-        grid.innerHTML = `<div style="grid-column:1/-1;padding:16px;background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:12px;font-size:0.85rem;color:var(--green);">✅ No wastage anomalies detected in the current dataset.</div>`;
-      }
     })
     .catch(() => {
-      document.getElementById('loadingState').innerHTML =
-        '<div style="color:#ff6b6b">⚠️ Failed to load data. Please refresh.</div>';
+      document.getElementById('loadingState').innerHTML = '<div style="color:#d43a1a">⚠️ Failed to load data. Please refresh.</div>';
     });
 </script>
 </body>
