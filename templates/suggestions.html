@@ -1,0 +1,337 @@
+ <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Campus — Suggestions</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #f4faf8;
+      --surf:     #ffffff;
+      --surf2:    #e6f5f0;
+      --border:   #c8e8de;
+      --teal:     #1a8060;
+      --coral:    #e8441a;
+      --indigo:   #2d3acc;
+      --amber:    #f0b800;
+      --red:      #d43a1a;
+      --text:     #0f2d25;
+      --muted:    #4a8070;
+      --muted2:   #7aaa90;
+    }
+
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: fixed; left: 0; top: 0; bottom: 0; width: 250px;
+      background: var(--surf); border-right: 1.5px solid var(--border);
+      padding: 28px 18px; display: flex; flex-direction: column; z-index: 100;
+      box-shadow: 2px 0 12px rgba(26,128,96,0.06);
+    }
+    .brand { display: flex; align-items: center; gap: 11px; margin-bottom: 36px; }
+    .brand-icon { width: 38px; height: 38px; background: linear-gradient(135deg, var(--teal), var(--indigo)); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+    .brand-name { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.95rem; color: var(--text); line-height: 1.2; }
+    .brand-name span { display: block; font-weight: 400; font-size: 0.68rem; color: var(--muted); font-family: 'DM Sans', sans-serif; }
+    .nav-label { font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted2); margin-bottom: 8px; padding-left: 4px; }
+    .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; font-size: 0.85rem; color: var(--muted); cursor: pointer; margin-bottom: 3px; text-decoration: none; transition: background 0.2s; }
+    .nav-item.active { background: rgba(240,184,0,0.12); color: #8a6800; font-weight: 500; }
+    .nav-item:hover  { background: var(--surf2); color: var(--text); }
+    .sidebar-footer  { margin-top: auto; border-top: 1.5px solid var(--border); padding-top: 18px; }
+    .logout-btn { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 10px; font-size: 0.85rem; color: var(--red); text-decoration: none; transition: background 0.2s; }
+    .logout-btn:hover { background: rgba(212,58,26,0.08); }
+
+    /* ── Main ── */
+    .main { margin-left: 250px; padding: 32px 36px; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+    .page-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem; color: var(--text); }
+    .page-sub   { font-size: 0.8rem; color: var(--muted); margin-top: 3px; }
+    .badge { background: rgba(240,184,0,0.1); border: 1px solid rgba(240,184,0,0.35); color: #8a6800; border-radius: 20px; padding: 6px 14px; font-size: 0.78rem; font-weight: 500; }
+
+    /* ── Two-col layout ── */
+    .layout { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: start; }
+
+    /* ── Filter tabs ── */
+    .filter-tabs { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+    .tab { padding: 7px 16px; border-radius: 20px; font-size: 0.8rem; font-weight: 500; cursor: pointer; border: 1.5px solid var(--border); background: var(--surf); color: var(--muted); transition: all 0.2s; }
+    .tab[data-cat="all"].active        { background: var(--text);   border-color: var(--text);   color: #fff; }
+    .tab[data-cat="electricity"].active{ background: var(--coral);  border-color: var(--coral);  color: #fff; }
+    .tab[data-cat="water"].active      { background: var(--teal);   border-color: var(--teal);   color: #fff; }
+    .tab[data-cat="classrooms"].active { background: var(--indigo); border-color: var(--indigo); color: #fff; }
+    .tab[data-cat="general"].active    { background: #8a6800;       border-color: #8a6800;       color: #fff; }
+    .tab:hover { background: var(--surf2); }
+
+    /* ── Feed items ── */
+    .feed-item { background: var(--surf); border: 1.5px solid var(--border); border-radius: 14px; padding: 16px 18px; display: flex; align-items: flex-start; gap: 14px; margin-bottom: 10px; transition: box-shadow 0.2s, transform 0.2s; animation: fadeUp 0.4s ease both; box-shadow: 0 2px 8px rgba(26,128,96,0.05); }
+    .feed-item:hover { box-shadow: 0 4px 18px rgba(26,128,96,0.1); transform: translateY(-2px); }
+
+    .feed-dot-col { display: flex; flex-direction: column; align-items: center; padding-top: 5px; }
+    .feed-dot     { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+    .feed-line    { width: 2px; flex: 1; min-height: 28px; background: var(--border); margin-top: 5px; }
+    .feed-item:last-child .feed-line { display: none; }
+
+    .dot-electricity { background: var(--coral); }
+    .dot-water       { background: var(--teal); }
+    .dot-classrooms  { background: var(--indigo); }
+    .dot-general     { background: var(--amber); }
+
+    .feed-body { flex: 1; }
+    .feed-meta { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; flex-wrap: wrap; }
+
+    .feed-cat { font-size: 0.68rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 9px; border-radius: 20px; }
+    .cat-electricity { background: rgba(232,68,26,0.1); color: var(--coral); }
+    .cat-water       { background: rgba(26,128,96,0.1); color: var(--teal); }
+    .cat-classrooms  { background: rgba(45,58,204,0.1); color: var(--indigo); }
+    .cat-general     { background: rgba(240,184,0,0.1); color: #8a6800; }
+
+    .feed-priority { font-size: 0.68rem; font-weight: 600; padding: 2px 9px; border-radius: 20px; }
+    .p-high   { background: rgba(212,58,26,0.1); color: var(--red); }
+    .p-medium { background: rgba(240,184,0,0.1); color: #8a6800; }
+    .p-low    { background: rgba(26,128,96,0.1); color: var(--teal); }
+
+    .feed-text { font-size: 0.87rem; color: var(--muted); line-height: 1.6; }
+
+    /* ── Summary Panel ── */
+    .summary-wrap { display: flex; flex-direction: column; gap: 16px; }
+    .summary-card { background: var(--surf); border: 1.5px solid var(--border); border-radius: 16px; padding: 20px; animation: fadeUp 0.4s ease both; box-shadow: 0 2px 8px rgba(26,128,96,0.05); }
+    .summary-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem; color: var(--text); margin-bottom: 16px; }
+
+    .donut-wrap { position: relative; margin: 0 auto 6px; width: 150px; height: 150px; }
+    .donut-center { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; }
+    .donut-num  { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; color: var(--text); line-height: 1; }
+    .donut-sub  { font-size: 0.65rem; color: var(--muted); }
+
+    .cat-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .cat-row:last-child { margin-bottom: 0; }
+    .cat-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+    .ci-e { background: rgba(232,68,26,0.1); }
+    .ci-w { background: rgba(26,128,96,0.1); }
+    .ci-r { background: rgba(45,58,204,0.1); }
+    .ci-g { background: rgba(240,184,0,0.1); }
+    .cat-info { flex: 1; }
+    .cat-name { font-size: 0.78rem; font-weight: 500; color: var(--text); }
+    .cat-bar-wrap { height: 5px; background: var(--border); border-radius: 10px; margin-top: 4px; overflow: hidden; }
+    .cat-bar { height: 100%; border-radius: 10px; }
+    .be { background: var(--coral); }
+    .bw { background: var(--teal); }
+    .br { background: var(--indigo); }
+    .bg { background: var(--amber); }
+    .cat-count { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; color: var(--text); }
+
+    .p-row { display: flex; align-items: center; justify-content: space-between; padding: 9px 12px; border-radius: 10px; background: var(--surf2); margin-bottom: 8px; }
+    .p-row:last-child { margin-bottom: 0; }
+    .p-row-left { display: flex; align-items: center; gap: 8px; }
+    .p-mini-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .p-row-name { font-size: 0.82rem; color: var(--text); }
+    .p-row-count { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; }
+
+    /* Loading */
+    #loadingState { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 80vh; gap: 14px; margin-left: 250px; }
+    .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--amber); border-radius: 50%; animation: spin 0.8s linear infinite; }
+    @keyframes spin   { to { transform: rotate(360deg); } }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-icon">🏛️</div>
+    <div class="brand-name">SmartCampus<span>Admin Panel</span></div>
+  </div>
+  <div class="nav-label">Analytics</div>
+  <a href="/dashboard"   class="nav-item {% if active == 'dashboard'   %}active{% endif %}">📊 Dashboard</a>
+  <a href="/electricity" class="nav-item {% if active == 'electricity' %}active{% endif %}">⚡ Electricity</a>
+  <a href="/water"       class="nav-item {% if active == 'water'       %}active{% endif %}">💧 Water</a>
+  <a href="/classrooms"  class="nav-item {% if active == 'classrooms'  %}active{% endif %}">🏫 Classrooms</a>
+  <div class="nav-label" style="margin-top:18px;">Reports</div>
+  <a href="/suggestions" class="nav-item {% if active == 'suggestions' %}active{% endif %}">💡 Suggestions</a>
+  <div class="sidebar-footer">
+    <a href="/logout" class="logout-btn">🚪 &nbsp;Logout</a>
+  </div>
+</aside>
+
+<!-- Loading -->
+<div id="loadingState">
+  <div class="spinner"></div>
+  <div style="color:#4a8070;font-size:0.82rem">Generating smart suggestions…</div>
+</div>
+
+<!-- Main -->
+<main class="main" id="mainContent" style="display:none">
+  <div class="topbar">
+    <div>
+      <div class="page-title">💡 Smart Suggestions</div>
+      <div class="page-sub">AI-driven recommendations to optimise campus resources</div>
+    </div>
+    <div class="badge">✨ Auto-generated from live data</div>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT: Feed -->
+    <div>
+      <div class="filter-tabs">
+        <div class="tab active" data-cat="all">All</div>
+        <div class="tab" data-cat="electricity">⚡ Electricity</div>
+        <div class="tab" data-cat="water">💧 Water</div>
+        <div class="tab" data-cat="classrooms">🏫 Classrooms</div>
+        <div class="tab" data-cat="general">💡 General</div>
+      </div>
+      <div id="feedList"></div>
+    </div>
+
+    <!-- RIGHT: Summary -->
+    <div class="summary-wrap">
+      <div class="summary-card">
+        <div class="summary-title">📊 By Category</div>
+        <div class="donut-wrap">
+          <canvas id="donutChart"></canvas>
+          <div class="donut-center">
+            <div class="donut-num">16</div>
+            <div class="donut-sub">total tips</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-title">📁 Breakdown</div>
+        <div class="cat-row">
+          <div class="cat-icon ci-e">⚡</div>
+          <div class="cat-info">
+            <div class="cat-name">Electricity</div>
+            <div class="cat-bar-wrap"><div class="cat-bar be" style="width:100%"></div></div>
+          </div>
+          <div class="cat-count">4</div>
+        </div>
+        <div class="cat-row">
+          <div class="cat-icon ci-w">💧</div>
+          <div class="cat-info">
+            <div class="cat-name">Water</div>
+            <div class="cat-bar-wrap"><div class="cat-bar bw" style="width:100%"></div></div>
+          </div>
+          <div class="cat-count">4</div>
+        </div>
+        <div class="cat-row">
+          <div class="cat-icon ci-r">🏫</div>
+          <div class="cat-info">
+            <div class="cat-name">Classrooms</div>
+            <div class="cat-bar-wrap"><div class="cat-bar br" style="width:100%"></div></div>
+          </div>
+          <div class="cat-count">4</div>
+        </div>
+        <div class="cat-row">
+          <div class="cat-icon ci-g">💡</div>
+          <div class="cat-info">
+            <div class="cat-name">General</div>
+            <div class="cat-bar-wrap"><div class="cat-bar bg" style="width:100%"></div></div>
+          </div>
+          <div class="cat-count">4</div>
+        </div>
+      </div>
+
+      <div class="summary-card">
+        <div class="summary-title">🚦 By Priority</div>
+        <div class="p-row">
+          <div class="p-row-left">
+            <div class="p-mini-dot" style="background:var(--red)"></div>
+            <div class="p-row-name">High</div>
+          </div>
+          <div class="p-row-count" style="color:var(--red)">4</div>
+        </div>
+        <div class="p-row">
+          <div class="p-row-left">
+            <div class="p-mini-dot" style="background:#c89000"></div>
+            <div class="p-row-name">Medium</div>
+          </div>
+          <div class="p-row-count" style="color:#8a6800">8</div>
+        </div>
+        <div class="p-row">
+          <div class="p-row-left">
+            <div class="p-mini-dot" style="background:var(--teal)"></div>
+            <div class="p-row-name">Low</div>
+          </div>
+          <div class="p-row-count" style="color:var(--teal)">4</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  const suggestions = [
+    { cat: "electricity", text: "Building B has the highest electricity consumption — schedule an energy audit immediately.", priority: "high" },
+    { cat: "electricity", text: "Shift heavy electrical loads to off-peak hours (10 PM – 6 AM) to reduce peak demand charges.", priority: "medium" },
+    { cat: "electricity", text: "Switch to LED lighting in all high-usage buildings to cut electricity load by up to 40%.", priority: "medium" },
+    { cat: "electricity", text: "Building D is the most energy efficient — replicate its practices across other buildings.", priority: "low" },
+    { cat: "water",       text: "Building B has the highest water consumption — inspect for leaks and install flow regulators.", priority: "high" },
+    { cat: "water",       text: "Install smart water meters per building for real-time monitoring and early leak detection.", priority: "medium" },
+    { cat: "water",       text: "Schedule plumbing inspections during semester breaks to minimise campus disruption.", priority: "medium" },
+    { cat: "water",       text: "Building D uses the least water — use it as a benchmark for conservation practices.", priority: "low" },
+    { cat: "classrooms",  text: "Low-utilisation buildings should have rooms reassigned or repurposed to avoid wasted space.", priority: "high" },
+    { cat: "classrooms",  text: "Introduce a digital room booking system to maximise classroom occupancy throughout the day.", priority: "medium" },
+    { cat: "classrooms",  text: "Consolidate classes in fewer buildings during off-peak periods to reduce energy and water usage.", priority: "medium" },
+    { cat: "classrooms",  text: "Track peak occupancy hours and schedule cleaning/maintenance during low-utilisation windows.", priority: "low" },
+    { cat: "general",     text: "Install IoT sensors across all buildings for automated real-time resource tracking.", priority: "high" },
+    { cat: "general",     text: "Create a monthly resource consumption report to track improvements and identify new issues.", priority: "medium" },
+    { cat: "general",     text: "Schedule preventive maintenance during low-utilisation periods to minimise campus disruption.", priority: "medium" },
+    { cat: "general",     text: "Launch a campus-wide awareness campaign to encourage students and staff to save energy and water.", priority: "low" },
+  ];
+
+  const catLabel = { electricity:"⚡ Electricity", water:"💧 Water", classrooms:"🏫 Classrooms", general:"💡 General" };
+
+  function renderFeed(filter = "all") {
+    const list = document.getElementById("feedList");
+    list.innerHTML = "";
+    const items = filter === "all" ? suggestions : suggestions.filter(s => s.cat === filter);
+    items.forEach((s, i) => {
+      const div = document.createElement("div");
+      div.className = "feed-item";
+      div.style.animationDelay = (i * 0.05) + "s";
+      div.innerHTML = `
+        <div class="feed-dot-col">
+          <div class="feed-dot dot-${s.cat}"></div>
+          <div class="feed-line"></div>
+        </div>
+        <div class="feed-body">
+          <div class="feed-meta">
+            <span class="feed-cat cat-${s.cat}">${catLabel[s.cat]}</span>
+            <span class="feed-priority p-${s.priority}">${s.priority.charAt(0).toUpperCase()+s.priority.slice(1)}</span>
+          </div>
+          <div class="feed-text">${s.text}</div>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+  }
+
+  document.querySelectorAll(".tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      renderFeed(tab.dataset.cat);
+    });
+  });
+
+  // Donut — Coral/Teal/Indigo/Amber
+  new Chart(document.getElementById("donutChart").getContext("2d"), {
+    type: "doughnut",
+    data: {
+      labels: ["Electricity", "Water", "Classrooms", "General"],
+      datasets: [{ data: [4, 4, 4, 4], backgroundColor: ["#e8441a","#1a8060","#2d3acc","#f0b800"], borderColor: "#ffffff", borderWidth: 3, hoverOffset: 6 }]
+    },
+    options: { cutout: "70%", plugins: { legend: { display: false }, tooltip: { backgroundColor: '#fff', borderColor: '#c8e8de', borderWidth: 1, titleColor: '#0f2d25', bodyColor: '#4a8070', callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw} tips` } } } }
+  });
+
+  setTimeout(() => {
+    document.getElementById("loadingState").style.display = "none";
+    document.getElementById("mainContent").style.display  = "block";
+    renderFeed();
+  }, 500);
+</script>
+</body>
+</html> 
