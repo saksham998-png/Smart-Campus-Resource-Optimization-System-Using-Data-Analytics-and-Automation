@@ -213,18 +213,7 @@
     <div class="kpi-card c-amber"><div class="kpi-icon">🏆</div><div class="kpi-label">Highest Usage</div><div class="kpi-value" id="ovHighest">—</div><div class="kpi-sub">peak consumer</div></div>
   </div>
 
-  <!-- Pick-a-block prompt — shown until user picks a block -->
-  <div id="pickState">
-    <div class="pick-icon">⚡</div>
-    <div class="pick-title">Choose a block to explore</div>
-    <div class="pick-sub">Select a building block from the sidebar or click one of the buttons below to view its detailed electricity analytics.</div>
-    <div class="pick-blocks">
-      <div class="pick-btn" onclick="switchBlock('A')">Block A<span class="pb-val" id="pick-val-A">—</span></div>
-      <div class="pick-btn" onclick="switchBlock('B')">Block B<span class="pb-val" id="pick-val-B">—</span></div>
-      <div class="pick-btn" onclick="switchBlock('C')">Block C<span class="pb-val" id="pick-val-C">—</span></div>
-      <div class="pick-btn" onclick="switchBlock('D')">Block D<span class="pb-val" id="pick-val-D">—</span></div>
-    </div>
-  </div>
+  
 
   <!-- Block detail — hidden until a block is selected -->
   <div id="blockDetail">
@@ -334,10 +323,8 @@
     document.getElementById('pageTitle').textContent = `Block ${block}`;
     document.getElementById('pageSub').textContent   = `Electricity analytics for this building`;
     document.getElementById('blockLabel').textContent = `⚡ Block ${block} Detail`;
-
-    /* Show detail, hide pick prompt */
-    document.getElementById('pickState').style.display  = 'none';
     document.getElementById('blockDetail').style.display = 'block';
+
 
     renderBlockDetail(block);
   }
@@ -413,8 +400,9 @@
     .then(d => {
       document.getElementById('loadingState').style.display = 'none';
       document.getElementById('mainContent').style.display  = 'block';
-      document.getElementById('pickState').style.display    = 'flex';
       allData = d;
+      // ✅ AUTO OPEN BLOCK A
+      switchBlock(d.buildings[0]);
 
       /* Campus overview */
       document.getElementById('ovTotal').textContent     = fmt(d.total_electricity);

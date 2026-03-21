@@ -141,22 +141,30 @@ def get_data():
 @app.route("/api/electricity-data")
 def electricity_data():
     building_usage = {k: int(v) for k, v in electricity_per_building.items()}
-    trend          = {str(k): int(v) for k, v in daily_electricity.items()}
+    trend = {str(k): int(v) for k, v in daily_electricity.items()}
+
+    buildings = list(electricity_per_building.keys())
 
     return jsonify({
-        "total_electricity":        total_electricity,
-        "average_electricity":      avg_electricity,
-        "highest_usage_building":   highest_elec_building,
-        "most_efficient_building":  lowest_elec_building,
-        "building_usage":           building_usage,
-        "daily_trend":              trend,
-        # XAI wastage
-        "wastage_alerts":           wastage_alerts_top4,
-        "building_wastage_units":   building_wastage_units,
-        "building_wastage_counts":  building_wastage_counts,
-        "glitch_count":             glitch_count,
-        "event_count":              event_count,
-        "total_wastage_events":     len(wastage_alerts),
+        "buildings": buildings,
+        "electricity": [int(electricity_per_building[b]) for b in buildings],
+        "utilization": [float(avg_utilization[b]) for b in buildings],
+
+        "total_electricity": total_electricity,
+        "average_electricity": avg_electricity,
+        "highest_usage_building": highest_elec_building,
+        "most_efficient_building": lowest_elec_building,
+
+        "building_usage": {k: int(v) for k, v in electricity_per_building.items()},
+        "daily_trend": {str(k): int(v) for k, v in daily_electricity.items()},
+
+        # XAI
+        "wastage_alerts": wastage_alerts_top4,
+        "building_wastage_units": building_wastage_units,
+        "building_wastage_counts": building_wastage_counts,
+        "glitch_count": glitch_count,
+        "event_count": event_count,
+        "total_wastage_events": len(wastage_alerts),
     })
 
 
