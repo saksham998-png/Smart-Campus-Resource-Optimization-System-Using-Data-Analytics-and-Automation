@@ -1,64 +1,83 @@
-🏫 Smart Campus Resource Optimization System
+# 🏫 Smart Campus Resource Optimization System
 
-Using Data Analytics and Automation
+### *Using Data Analytics & Automation*
 
-📌 Overview
+---
 
-The Smart Campus Resource Optimization System is a web-based application built using Flask that analyzes campus resource usage (electricity, water, and classroom utilization) and provides insights along with intelligent suggestions to improve efficiency.
+## 📌 Overview
 
-This project leverages data analytics to help institutions make informed decisions for sustainable campus management.
+The **Smart Campus Resource Optimization System** is a web-based application built using **Flask** that analyzes campus resource usage — including electricity, water, and classroom utilization — and provides actionable insights along with intelligent recommendations.
 
-🚀 Features
+The goal is to help institutions **optimize resource consumption, reduce wastage, and improve operational efficiency** through data-driven decision-making.
 
-⚡ Electricity Usage Analysis
+---
 
-Total and average consumption
+## 🚀 Key Features
 
-Building-wise comparison
+### ⚡ Electricity Analytics
 
-Daily trends
+* Total and average consumption tracking
+* Building-wise comparison
+* Weekly usage trends
+* Wastage detection (based on usage patterns)
 
-💧 Water Usage Monitoring
+---
 
-Building-wise water consumption analysis
+### 💧 Water Monitoring
 
-🏫 Classroom Utilization
+* Building-wise water consumption
+* Comparative analysis across campus
 
-Calculates utilization percentage
+---
 
-Identifies underutilized buildings
+### 🏫 Classroom Utilization
 
-📊 Interactive Dashboard
+* Utilization percentage calculation
+* Identification of underutilized buildings
+* Space optimization insights
 
-Visual representation of data
+---
 
-Clean and user-friendly UI
+### 📊 Interactive Dashboard
 
-🤖 Automated Suggestions
+* Clean and intuitive UI
+* Dynamic charts using real-time processed data
+* Block-level drill-down analysis
 
-Smart recommendations for:
+---
 
-Energy saving
+### 🤖 Smart Suggestions Engine
 
-Space optimization
+* Automated recommendations for:
 
-Maintenance planning
+  * Energy saving
+  * Maintenance actions
+  * Space optimization
+* Based on detected inefficiencies and patterns
 
-🔐 Login System
+---
 
-Basic session-based authentication
+### 🔐 Authentication System
 
-🛠️ Tech Stack
+* Basic login system using session management
 
-Backend: Python, Flask
+---
 
-Frontend: HTML, CSS
+## 🛠️ Tech Stack
 
-Data Processing: Pandas
+| Layer         | Technology Used       |
+| ------------- | --------------------- |
+| Backend       | Python, Flask         |
+| Frontend      | HTML, CSS, JavaScript |
+| Data          | Pandas                |
+| Dataset       | Excel (.xlsx), CSV    |
+| Visualization | Chart.js              |
 
-Dataset: Excel (.xlsx) and CSV files
+---
 
-📂 Project Structure
+## 📂 Project Structure
+
+```
 Smart-Campus-Resource-Optimization-System/
 │── app.py
 │── one.py
@@ -76,70 +95,111 @@ Smart-Campus-Resource-Optimization-System/
 │   ├── water.html
 │   ├── classrooms.html
 │   └── suggestions.html
-⚙️ Installation & Setup
+```
 
-Clone the repository
+---
 
-git clone https://github.com/your-username/smart-campus-system.git
+## ⚙️ Installation & Setup
+
+### 1️⃣ Clone the repository
+
+```bash
+git clone https://github.com/saksham998-png/Smart-Campus-Resource-Optimization-System-Using-Data-Analytics-and-Automation.git
 cd smart-campus-system
+```
 
-Create a virtual environment (optional but recommended)
+### 2️⃣ Create virtual environment (recommended)
 
+```bash
 python -m venv venv
-source venv/bin/activate   # For Linux/Mac
-venv\Scripts\activate      # For Windows
+```
 
-Install dependencies
+**Activate:**
 
+* Windows:
+
+```bash
+venv\Scripts\activate
+```
+
+* Mac/Linux:
+
+```bash
+source venv/bin/activate
+```
+
+---
+
+### 3️⃣ Install dependencies
+
+```bash
 pip install -r requirements.txt
+```
 
-Run the application
+---
 
+### 4️⃣ Run the application
+
+```bash
 python app.py
+```
 
-Open your browser and go to:
+---
 
+### 5️⃣ Open in browser
+
+```
 http://127.0.0.1:5000/
-📊 Dataset Details
+```
+
+---
+
+## 📊 Dataset Details
 
 The system uses:
 
-smart_campus_200_row_dataset.xlsx
+* `smart_campus_200_row_dataset.xlsx`
+* `dataset.csv`
 
-dataset.csv
+### Key Fields:
 
-Key Fields:
+* Building
+* Electricity_Units
+* Water_Usage_Liters
+* Rooms_Used
+* Total_Rooms
+* Date
 
-Building
+---
 
-Electricity_Units
+## 💡 Insights Generated
 
-Water_Usage_Liters
+* Building with highest electricity consumption
+* Most efficient (low usage) building
+* Daily/weekly usage trends
+* Underutilized classrooms
+* Resource wastage detection
+* Optimization suggestions
 
-Rooms_Used
+---
 
-Total_Rooms
+## 🔮 Future Enhancements
 
-Date
+* 🔌 Integration with IoT sensors (real-time data)
+* 📡 Live monitoring dashboard
+* 🤖 Machine Learning-based predictions
+* 🔐 Role-based authentication (Admin/User)
+* 📱 Fully responsive mobile UI
 
-💡 Example Insights Generated
+---
 
-Building with highest electricity consumption
+## 🎯 Project Goal
 
-Buildings with lowest utilization
+To transform raw campus data into **meaningful insights and actionable decisions**, enabling smarter and more sustainable campus management.
 
-Daily electricity trends
+## 👥👥 Team Members
 
-Resource optimization suggestions
-
-🔮 Future Enhancements
-
-Integration with IoT sensors
-
-Real-time data tracking
-
-Machine Learning-based predictions
-
-Role-based authentication system
-
-Mobile-friendly UI
+1. Saksham Kumar (2301730151)
+2. Meenakshi (2301730200)
+3. Raksha Sinha (2301730177)
+4. Srishti Kainth (2301730175)
