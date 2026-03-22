@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Campus — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #f4faf8;
+      --surf:     #ffffff;
+      --surf2:    #e6f5f0;
+      --border:   #c8e8de;
+      --teal:     #1a8060;
+      --coral:    #e8441a;
+      --indigo:   #2d3acc;
+      --amber:    #f0b800;
+      --red:      #d43a1a;
+      --text:     #0f2d25;
+      --muted:    #4a8070;
+      --muted2:   #7aaa90;
+    }
+
+    body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: fixed; left: 0; top: 0; bottom: 0; width: 250px;
+      background: var(--surf);
+      border-right: 1.5px solid var(--border);
+      padding: 28px 18px;
+      display: flex; flex-direction: column; z-index: 100;
+      box-shadow: 2px 0 12px rgba(26,128,96,0.06);
+    }
+
+    .brand { display: flex; align-items: center; gap: 11px; margin-bottom: 36px; }
+    .brand-icon {
+      width: 38px; height: 38px;
+      background: linear-gradient(135deg, var(--teal), var(--indigo));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; flex-shrink: 0;
+    }
+    .brand-name { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 0.95rem; color: var(--text); line-height: 1.2; }
+    .brand-name span { display: block; font-weight: 400; font-size: 0.68rem; color: var(--muted); font-family: 'DM Sans', sans-serif; }
+
+    .nav-label { font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted2); margin-bottom: 8px; padding-left: 4px; }
+    .nav-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 10px;
+      font-size: 0.85rem; color: var(--muted);
+      cursor: pointer; margin-bottom: 3px; text-decoration: none;
+      transition: background 0.2s;
+    }
+    .nav-item.active { background: rgba(232,68,26,0.1); color: var(--coral); font-weight: 500; }
+    .nav-item:hover { background: var(--surf2); color: var(--text); }
+
+    .sidebar-footer { margin-top: auto; border-top: 1.5px solid var(--border); padding-top: 18px; }
+    .logout-btn {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 10px;
+      font-size: 0.85rem; color: var(--red);
+      text-decoration: none; transition: background 0.2s;
+    }
+    .logout-btn:hover { background: rgba(212,58,26,0.08); }
+
+    /* ── Main ── */
+    .main { margin-left: 230px; padding: 30px 32px; }
+
+    .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; }
+    .page-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem; color: var(--text); }
+    .page-sub { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+
+    .live-badge {
+      display: flex; align-items: center; gap: 8px;
+      background: rgba(26,128,96,0.08);
+      border: 1px solid rgba(26,128,96,0.25);
+      border-radius: 20px; padding: 6px 14px;
+      font-size: 0.78rem; color: var(--teal);
+    }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .chart-card {
+      background: var(--surf);
+      border: 1.5px solid var(--border);
+      border-radius: 18px; padding: 22px;
+      animation: fadeUp 0.5s ease both;
+      box-shadow: 0 2px 8px rgba(26,128,96,0.06);
+    }
+    .chart-card.full { grid-column: 1 / -1; }
+
+    .chart-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; }
+    .chart-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; color: var(--text); }
+    .chart-tag { font-size: 0.7rem; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+    .tag-coral  { background: rgba(232,68,26,0.1);  color: var(--coral); }
+    .tag-indigo { background: rgba(45,58,204,0.1);  color: var(--indigo); }
+    .tag-teal   { background: rgba(26,128,96,0.1);  color: var(--teal); }
+    .tag-amber  { background: rgba(240,184,0,0.12); color: #8a6800; }
+
+    canvas { max-height: 240px; }
+
+    /* ── Loading ── */
+    #loadingState {
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      height: 80vh; gap: 14px;
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--coral);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin  { to { transform: rotate(360deg); } }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-icon">🏛️</div>
+    <div class="brand-name">SmartCampus<span>Admin Panel</span></div>
+  </div>
+
+  <div class="nav-label">Analytics</div>
+  <a href="/dashboard"   class="nav-item {% if active == 'dashboard'   %}active{% endif %}">📊 Dashboard</a>
+  <a href="/electricity" class="nav-item {% if active == 'electricity' %}active{% endif %}">⚡ Electricity</a>
+  <a href="/water"       class="nav-item {% if active == 'water'       %}active{% endif %}">💧 Water</a>
+  <a href="/classrooms"  class="nav-item {% if active == 'classrooms'  %}active{% endif %}">🏫 Classrooms</a>
+  <a href="/planned-entry" class="nav-item">📅 Planned Entry</a>
+  <a href="/live-entry" class="nav-item">⚡ Live Entry</a>
+  <div class="nav-label" style="margin-top:18px;">Reports</div>
+  <a href="/suggestions" class="nav-item {% if active == 'suggestions' %}active{% endif %}">💡 Suggestions</a>
+  <div class="sidebar-footer">
+    <a href="/logout" class="logout-btn">🚪 &nbsp;Logout</a>
+  </div>
+</aside>
+
+<!-- Main -->
+<main class="main" id="mainContent" style="display:none">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Resource Dashboard</div>
+      <div class="page-sub">Campus-wide energy &amp; space analytics</div>
+    </div>
+    <div class="live-badge"><div class="live-dot"></div> Live Data</div>
+  </div>
+  <div class="chart-card full">
+
+  <div class="chart-hdr">
+    <div class="chart-title">⚡ Live Usage Entry</div>
+    <span class="chart-tag tag-indigo">Live Input</span>
+  </div>
+
+  <form method="POST">
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+
+      <div>
+        <label>Building</label>
+        <select name="building" style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border);">
+          <option value="A">A Block</option>
+          <option value="B">B Block</option>
+          <option value="C">C Block</option>
+          <option value="D">D Block</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Rooms Actually Used</label>
+        <input type="number" name="rooms" required
+          style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border);">
+      </div>
+
+      <div>
+        <label>Time Slot</label>
+        <select name="time_slot"
+          style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border);">
+          <option value="1">9:10 - 10:00</option>
+          <option value="2">10:05 - 10:55</option>
+          <option value="3">11:00 - 11:50</option>
+          <option value="4">11:50 - 12:40</option>
+          <option value="5">12:40 - 1:30</option>
+          <option value="6">1:30 - 2:20</option>
+          <option value="7">2:20 - 3:10</option>
+          <option value="8">3:10 - 4:00</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Date</label>
+        <input type="date" name="date" required
+          style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border);">
+      </div>
+
+    </div>
+
+    <button type="submit"
+      style="margin-top:20px; padding:12px 18px; border:none; border-radius:12px;
+             background:var(--indigo); color:white; font-weight:600; cursor:pointer;">
+      Submit Live Data
+    </button>
+
+  </form>
+
+</div>
+  
+
+</main>
+
+<!-- Loading -->
+<div id="loadingState" style="margin-left:230px">
+  <div class="spinner"></div>
+  <div style="color:#4a8070;font-size:0.82rem">Loading campus data…</div>
+</div>
+
+<script>
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('mainContent').style.display  = 'block';
+</script>
+</body>
+</html>

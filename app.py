@@ -1,12 +1,140 @@
 from flask import Flask, render_template, jsonify, request, redirect, url_for, session
 import pandas as pd
+import os
 
 app = Flask(__name__)
 app.secret_key = "smartcampus2025"
 
 # Load dataset
-data = pd.read_excel("smart_campus_200_row_dataset.xlsx")
 
+try:
+    data = pd.read_csv("campus_data.csv")
+except (pd.errors.EmptyDataError, FileNotFoundError):
+    data = pd.read_excel("smart_campus_200_row_dataset.xlsx")
+    data["Data_Type"] = "historical"
+    data.to_csv("campus_data.csv", index=False)
+
+AVG_ELECTRICITY_PER_ROOM_PER_HOUR = 2   # units
+AVG_WATER_PER_ROOM_PER_HOUR = 10        # liters
+
+    
+# ── Planned vs Live Comparison ───────────────────────────
+
+def generate_live_insights(data):
+    planned_data = data[data["Data_Type"] == "planned"]
+    live_data = data[data["Data_Type"] == "live"]
+
+    insights = []
+
+    for _, p in planned_data.iterrows():
+        for _, l in live_data.iterrows():
+
+            if (p["Building"] == l["Building"] and
+                str(p["Date"])[:10] == str(l["Date"])[:10] and
+                p.get("Time_Slot") == l.get("Time_Slot")):
+
+                planned_rooms = p["Rooms_Used"]
+                live_rooms = l["Rooms_Used"]
+
+                if planned_rooms > 0:
+                    gap = planned_rooms - live_rooms
+                    gap_percent = (gap / planned_rooms) * 100
+
+                    # 🚨 Underutilization
+                    if gap_percent > 30:
+                        insights.append({
+                            "type": "underutilization",
+                            "building": p["Building"],
+                            "message": f"{p['Building']} Block underutilized by {int(gap_percent)}%",
+                            "suggestion": "Reduce electricity usage or shift classes"
+                        })
+
+                    # ⚡ Overutilization
+                    elif gap_percent < -20:
+                        insights.append({
+                            "type": "overutilization",
+                            "building": p["Building"],
+                            "message": f"{p['Building']} Block overutilized",
+                            "suggestion": "Increase resources or redistribute load"
+                        })
+
+    return insights
+    
+@app.route("/planned-entry", methods=["GET", "POST"])
+def planned_entry():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        building = request.form["building"]
+        rooms = int(request.form["rooms"])
+        
+        date = request.form["date"]
+        
+
+        # ⏱️ Calculate hours
+        time_slot = request.form["time_slot"]
+        hours = 1  # each slot ≈ 1 hour
+
+        # ⚡ Compute usage
+        electricity = rooms * hours * AVG_ELECTRICITY_PER_ROOM_PER_HOUR
+        water = rooms * hours * AVG_WATER_PER_ROOM_PER_HOUR
+
+        new_entry = {
+            "Building": building,
+            "Electricity_Units": electricity,
+            "Water_Usage_Liters": water,
+            "Rooms_Used": rooms,
+            "Total_Rooms": 40,  # assume fixed (you can adjust)
+            "Date": date,
+            "Time_Slot": time_slot,
+            "Data_Type": "planned"
+        }
+
+        global data
+        data = pd.concat([data, pd.DataFrame([new_entry])], ignore_index=True)
+        data.to_csv("campus_data.csv", index=False)
+
+        return redirect(url_for("dashboard"))
+
+    return render_template("planned_entry.html")
+
+@app.route("/live-entry", methods=["GET", "POST"])
+def live_entry():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+
+    if request.method == "POST":
+        building = request.form["building"]
+        rooms = int(request.form["rooms"])
+        date = request.form["date"]
+        time_slot = request.form["time_slot"]
+
+        # For live data, we assume 1 slot = 1 hour
+        hours = 1
+
+        # Compute actual usage (same formula)
+        electricity = rooms * hours * AVG_ELECTRICITY_PER_ROOM_PER_HOUR
+        water = rooms * hours * AVG_WATER_PER_ROOM_PER_HOUR
+
+        new_entry = {
+            "Building": building,
+            "Electricity_Units": electricity,
+            "Water_Usage_Liters": water,
+            "Rooms_Used": rooms,
+            "Total_Rooms": 40,
+            "Date": date,
+            "Time_Slot": time_slot,
+            "Data_Type": "live"
+        }
+
+        global data
+        data = pd.concat([data, pd.DataFrame([new_entry])], ignore_index=True)
+
+        return redirect(url_for("dashboard"))
+
+    return render_template("live_entry.html")
+    
 # ── Analysis ──────────────────────────────────────────────
 electricity_per_building = data.groupby("Building")["Electricity_Units"].sum().to_dict()
 water_per_building       = data.groupby("Building")["Water_Usage_Liters"].sum().to_dict()
@@ -22,15 +150,6 @@ data["Utilization_Percentage"] = (data["Rooms_Used"] / data["Total_Rooms"]) * 10
 avg_utilization       = data.groupby("Building")["Utilization_Percentage"].mean().round(2).to_dict()
 lowest_util_building  = min(avg_utilization, key=avg_utilization.get)
 
-# ── Wastage Detection (XAI) ───────────────────────────────
-# Strategy: compare each record against its OWN building's average
-# so all 4 buildings show up in charts (not just the highest-usage one)
-#
-# XAI Rule:
-#   Utilization < 65% (below campus median) → Sensor Glitch
-#                                              (rooms mostly empty, no valid reason)
-#   Utilization >= 65%                       → Campus Event
-#                                              (rooms active, usage is justified)
 
 CAMPUS_UTIL_MEDIAN = 65.0   # median utilisation across dataset
 
@@ -95,6 +214,7 @@ suggestions = [
 
 buildings = list(electricity_per_building.keys())
 
+live_insights = generate_live_insights(data)
 analysis_result = {
     "buildings":              buildings,
     "electricity":            [electricity_per_building[b] for b in buildings],
@@ -102,6 +222,7 @@ analysis_result = {
     "utilization":            [avg_utilization[b] for b in buildings],
     "highest_usage_building": highest_elec_building,
     "suggestions":            suggestions,
+    "live_insights": live_insights,
 }
 
 # ── Water specific analytics ──────────────────────────────

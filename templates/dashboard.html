@@ -117,6 +117,23 @@
       <div id="sugList"></div>
     </div>
   </div>
+  <div>
+  <h3>⚡ Live Optimization Insights</h3>
+  <ul id="liveInsights"></ul>
+</div>
+
+<script>
+fetch("/api/data")
+  .then(res => res.json())
+  .then(data => {
+    const list = document.getElementById("liveInsights");
+    data.live_insights.forEach(item => {
+      const li = document.createElement("li");
+      li.innerText = item.message + " → " + item.suggestion;
+      list.appendChild(li);
+    });
+  });
+</script>
 </main>
 
 <div id="loadingState" style="margin-left:250px">
