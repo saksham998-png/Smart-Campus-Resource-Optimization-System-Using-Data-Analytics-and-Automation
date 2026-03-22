@@ -15,6 +15,7 @@
     }
     body { background:var(--bg); color:var(--text); font-family:'DM Sans',sans-serif; min-height:100vh; }
 
+    /* ── Sidebar ── */
     .sidebar { position:fixed; left:0; top:0; bottom:0; width:250px; background:var(--surf); border-right:1.5px solid var(--border); padding:28px 18px; display:flex; flex-direction:column; z-index:100; box-shadow:2px 0 12px rgba(26,128,96,0.06); overflow-y:auto; }
     .brand { display:flex; align-items:center; gap:11px; margin-bottom:36px; }
     .brand-icon { width:38px; height:38px; background:linear-gradient(135deg,var(--teal),var(--indigo)); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
@@ -23,32 +24,34 @@
     .nav-label { font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted2); margin-bottom:8px; padding-left:4px; }
     .nav-item { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:10px; font-size:0.85rem; color:var(--muted); cursor:pointer; margin-bottom:3px; text-decoration:none; transition:background 0.2s; }
     .nav-item:hover { background:var(--surf2); color:var(--text); }
-    .nav-parent { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:10px; font-size:0.85rem; font-weight:600; color:var(--teal); background:rgba(26,128,96,0.08); cursor:pointer; margin-bottom:3px; user-select:none; }
+    .nav-item.active { background:var(--surf2); color:var(--text); font-weight:600; }
+    .nav-parent { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:10px; font-size:0.85rem; font-weight:600; cursor:pointer; margin-bottom:3px; user-select:none; }
     .nav-parent .chev { margin-left:auto; font-size:0.7rem; transition:transform 0.2s; }
-    .nav-parent.collapsed .chev { transform:rotate(-90deg); }
-    .block-subnav.hidden { display:none; }
-    .block-subnav { padding-left:14px; margin-left:10px; margin-bottom:4px; }
-    .block-item { display:flex; align-items:center; justify-content:space-between; padding:7px 10px; border-radius:8px; font-size:0.82rem; color:var(--muted); cursor:pointer; margin-bottom:2px; transition:background 0.2s; }
+    .nav-parent.elec  { color:var(--coral);  background:rgba(232,68,26,0.08); }
+    .nav-parent.water { color:var(--teal);   background:rgba(26,128,96,0.08); }
+    .nav-parent.rooms { color:var(--indigo); background:rgba(45,58,204,0.08); }
+    .block-subnav { padding-left:14px; margin-left:10px; margin-bottom:4px; overflow:hidden; transition:max-height 0.25s ease; max-height:200px; }
+    .block-subnav.hidden { max-height:0; }
+    .block-item { display:flex; align-items:center; justify-content:space-between; padding:7px 10px; border-radius:8px; font-size:0.82rem; color:var(--muted); cursor:pointer; margin-bottom:2px; transition:background 0.2s; text-decoration:none; }
     .block-item:hover { background:var(--surf2); color:var(--text); }
-    .block-item.active { background:rgba(26,128,96,0.12); color:var(--teal); font-weight:600; }
+    .block-item.active-elec  { background:rgba(232,68,26,0.12); color:var(--coral);  font-weight:600; }
+    .block-item.active-water { background:rgba(26,128,96,0.12);  color:var(--teal);   font-weight:600; }
+    .block-item.active-rooms { background:rgba(45,58,204,0.10);  color:var(--indigo); font-weight:600; }
     .block-item-left { display:flex; align-items:center; gap:8px; }
     .block-dot { width:7px; height:7px; border-radius:50%; background:var(--border); flex-shrink:0; }
-    .block-item.active .block-dot { background:var(--teal); }
-    .block-val { font-size:0.72rem; color:var(--muted2); }
-    .block-item.active .block-val { color:var(--teal); }
+    .block-item.active-water .block-dot { background:var(--teal); }
     .sidebar-footer { margin-top:auto; border-top:1.5px solid var(--border); padding-top:18px; }
     .logout-btn { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:10px; font-size:0.85rem; color:var(--red); text-decoration:none; transition:background 0.2s; }
     .logout-btn:hover { background:rgba(212,58,26,0.08); }
 
+    /* ── Main ── */
     .main { margin-left:250px; padding:30px 32px; }
     .topbar { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:24px; }
-    .breadcrumb { font-size:0.72rem; color:var(--muted2); margin-bottom:4px; }
     .page-title { font-family:'Syne',sans-serif; font-weight:800; font-size:1.5rem; color:var(--text); }
     .page-sub { font-size:0.8rem; color:var(--muted); margin-top:3px; }
     .live-badge { display:flex; align-items:center; gap:8px; background:rgba(26,128,96,0.08); border:1px solid rgba(26,128,96,0.25); border-radius:20px; padding:6px 14px; font-size:0.78rem; color:var(--teal); flex-shrink:0; }
     .live-dot { width:7px; height:7px; border-radius:50%; background:var(--teal); animation:pulse 2s infinite; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
     .section-label { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.09em; color:var(--muted2); margin-bottom:10px; }
     .kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
     .kpi-card { background:var(--surf); border:1.5px solid var(--border); border-radius:16px; padding:18px 16px; position:relative; overflow:hidden; box-shadow:0 2px 8px rgba(26,128,96,0.06); animation:fadeUp 0.4s ease both; }
@@ -61,11 +64,9 @@
     .kpi-label { font-size:0.68rem; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
     .kpi-value { font-family:'Syne',sans-serif; font-size:1.4rem; font-weight:700; color:var(--text); }
     .kpi-sub { font-size:0.7rem; color:var(--muted2); margin-top:3px; }
-
     .block-divider { display:flex; align-items:center; gap:14px; margin:20px 0; }
     .block-divider-line { flex:1; height:1px; background:var(--border); }
     .block-divider-label { font-family:'Syne',sans-serif; font-weight:700; font-size:0.8rem; color:var(--teal); background:rgba(26,128,96,0.08); border:1px solid rgba(26,128,96,0.2); border-radius:20px; padding:5px 16px; white-space:nowrap; }
-
     .det-kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
     .det-kpi { background:var(--surf2); border-radius:14px; padding:16px; animation:fadeUp 0.4s ease both; }
     .det-kpi .dl { font-size:0.68rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:5px; }
@@ -75,24 +76,20 @@
     .det-kpi.indigo .dv { color:var(--indigo); }
     .det-kpi.amber .dv  { color:#8a6800; }
     .det-kpi.coral .dv  { color:var(--coral); }
-
     .charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-bottom:20px; }
     .chart-card { background:var(--surf); border:1.5px solid var(--border); border-radius:18px; padding:20px; box-shadow:0 2px 8px rgba(26,128,96,0.06); animation:fadeUp 0.4s ease both; }
-    .chart-card.full { grid-column:1/-1; }
     .chart-hdr { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
     .chart-title { font-family:'Syne',sans-serif; font-weight:700; font-size:0.92rem; color:var(--text); }
     .chart-tag { font-size:0.68rem; padding:3px 10px; border-radius:20px; font-weight:500; }
-    .tag-teal   { background:rgba(26,128,96,0.1); color:var(--teal); }
-    .tag-indigo { background:rgba(45,58,204,0.1); color:var(--indigo); }
+    .tag-teal   { background:rgba(26,128,96,0.1);  color:var(--teal); }
+    .tag-indigo { background:rgba(45,58,204,0.1);  color:var(--indigo); }
     .tag-amber  { background:rgba(240,184,0,0.12); color:#8a6800; }
     canvas { max-height:220px; }
-
     .insights-card { background:var(--surf); border:1.5px solid var(--border); border-radius:18px; padding:20px; box-shadow:0 2px 8px rgba(26,128,96,0.06); margin-bottom:30px; }
     .insights-title { font-family:'Syne',sans-serif; font-weight:700; font-size:0.92rem; color:var(--text); margin-bottom:14px; }
     .insight-item { display:flex; align-items:flex-start; gap:10px; padding:12px 14px; background:var(--surf2); border:1px solid var(--border); border-radius:10px; margin-bottom:8px; font-size:0.85rem; color:var(--muted); line-height:1.5; transition:border-color 0.2s; }
     .insight-item:hover { border-color:rgba(26,128,96,0.35); }
     .insight-item:last-child { margin-bottom:0; }
-
     #loadingState { display:flex; flex-direction:column; align-items:center; justify-content:center; height:80vh; gap:14px; }
     .spinner { width:36px; height:36px; border:3px solid var(--border); border-top-color:var(--teal); border-radius:50%; animation:spin 0.8s linear infinite; }
     @keyframes spin   { to { transform:rotate(360deg); } }
@@ -101,45 +98,12 @@
 </head>
 <body>
 
-<aside class="sidebar">
-  <div class="brand">
-    <div class="brand-icon">🏛️</div>
-    <div class="brand-name">SmartCampus<span>Admin Panel</span></div>
-  </div>
-  <div class="nav-label">Analytics</div>
-  <a href="/dashboard"   class="nav-item {% if active == 'dashboard'   %}active{% endif %}">📊 Dashboard</a>
-  <a href="/electricity" class="nav-item {% if active == 'electricity' %}active{% endif %}">⚡ Electricity</a>
-  <div class="nav-parent" id="navParent" onclick="toggleBlocks()">💧 Water <span class="chev">▾</span></div>
-  <div class="block-subnav" id="blockSubnav">
-    <div class="block-item active" data-block="A" onclick="switchBlock('A')">
-      <div class="block-item-left"><div class="block-dot"></div>Block A</div>
-      <span class="block-val" id="nav-val-A">—</span>
-    </div>
-    <div class="block-item" data-block="B" onclick="switchBlock('B')">
-      <div class="block-item-left"><div class="block-dot"></div>Block B</div>
-      <span class="block-val" id="nav-val-B">—</span>
-    </div>
-    <div class="block-item" data-block="C" onclick="switchBlock('C')">
-      <div class="block-item-left"><div class="block-dot"></div>Block C</div>
-      <span class="block-val" id="nav-val-C">—</span>
-    </div>
-    <div class="block-item" data-block="D" onclick="switchBlock('D')">
-      <div class="block-item-left"><div class="block-dot"></div>Block D</div>
-      <span class="block-val" id="nav-val-D">—</span>
-    </div>
-  </div>
-  <a href="/classrooms"  class="nav-item {% if active == 'classrooms'  %}active{% endif %}">🏫 Classrooms</a>
-  <div class="nav-label" style="margin-top:18px;">Reports</div>
-  <a href="/suggestions" class="nav-item {% if active == 'suggestions' %}active{% endif %}">💡 Suggestions</a>
-  <div class="sidebar-footer">
-    <a href="/logout" class="logout-btn">🚪 &nbsp;Logout</a>
-  </div>
-</aside>
+{% include 'sidebar.html' %}
 
 <main class="main" id="mainContent" style="display:none">
   <div class="topbar">
     <div>
-      <div class="page-title" id="pageTitle">Block A</div>
+      <div class="page-title" id="pageTitle">Water Analytics</div>
       <div class="page-sub">Water consumption analytics for this building</div>
     </div>
     <div class="live-badge"><div class="live-dot"></div> Live Data</div>
@@ -215,15 +179,18 @@
   function destroyCharts() { Object.values(charts).forEach(c=>c&&c.destroy()); charts={}; }
   function fmt(n) { return Number(n).toLocaleString(); }
 
-  function toggleBlocks() {
-    const parent = document.getElementById('navParent');
-    const subnav = document.getElementById('blockSubnav');
-    parent.classList.toggle('collapsed');
+  /* ── Sidebar toggle — each section independent ── */
+  function toggleSection(section) {
+    const subnav = document.getElementById('subnav-'+section);
+    const chev   = document.getElementById('chev-'+section);
     subnav.classList.toggle('hidden');
+    chev.style.transform = subnav.classList.contains('hidden') ? 'rotate(-90deg)' : '';
   }
 
   function switchBlock(block) {
-    document.querySelectorAll('.block-item').forEach(el=>el.classList.toggle('active', el.dataset.block===block));
+    document.querySelectorAll('#subnav-water .block-item').forEach(el => {
+      el.classList.toggle('active-water', el.dataset.block === block);
+    });
     document.getElementById('pageTitle').textContent  = `Block ${block}`;
     document.getElementById('blockLabel').textContent = `💧 Block ${block} Detail`;
     if (allData) renderBlockDetail(block);
@@ -241,9 +208,9 @@
     const diffStr   = diff > 0 ? `+${diff}%` : `${diff}%`;
 
     document.getElementById('detTotal').textContent  = fmt(usage);
-    document.getElementById('detAvg').textContent   = fmt(Math.round(usage/30));
-    document.getElementById('detPeak').textContent  = fmt(peak);
-    document.getElementById('detVsAvg').textContent = diffStr;
+    document.getElementById('detAvg').textContent    = fmt(Math.round(usage/30));
+    document.getElementById('detPeak').textContent   = fmt(peak);
+    document.getElementById('detVsAvg').textContent  = diffStr;
 
     destroyCharts();
     const weeks = ['Week 1','Week 2','Week 3','Week 4'];
@@ -261,7 +228,7 @@
 
     const total = values.reduce((a,b)=>a+b,0);
     const pc = document.getElementById('blockPieChart').getContext('2d');
-    charts.pie = new Chart(pc,{type:'doughnut',data:{labels:buildings.map(b=>`Block ${b}`),datasets:[{data:values,backgroundColor:buildings.map((b,i)=>b===block?C.teal+'dd':'rgba(26,128,96,0.2)'),borderColor:buildings.map(b=>b===block?C.teal:'#c8e8de'),borderWidth:2,hoverOffset:8}]},options:{cutout:'60%',plugins:{legend:{position:'bottom',labels:{color:'#4a8070',font:{family:'DM Sans'},padding:12}},tooltip:{backgroundColor:'#fff',borderColor:'#c8e8de',borderWidth:1,padding:10,cornerRadius:8,bodyFont:{family:'DM Sans'},callbacks:{label:ctx=>((ctx.raw/total)*100).toFixed(1)+'%'}}}}});
+    charts.pie = new Chart(pc,{type:'doughnut',data:{labels:buildings.map(b=>`Block ${b}`),datasets:[{data:values,backgroundColor:buildings.map(b=>b===block?C.teal+'dd':'rgba(26,128,96,0.2)'),borderColor:buildings.map(b=>b===block?C.teal:'#c8e8de'),borderWidth:2,hoverOffset:8}]},options:{cutout:'60%',plugins:{legend:{position:'bottom',labels:{color:'#4a8070',font:{family:'DM Sans'},padding:12}},tooltip:{backgroundColor:'#fff',borderColor:'#c8e8de',borderWidth:1,padding:10,cornerRadius:8,bodyFont:{family:'DM Sans'},callbacks:{label:ctx=>((ctx.raw/total)*100).toFixed(1)+'%'}}}}});
 
     const insightList = document.getElementById('insightList');
     insightList.innerHTML='';
@@ -291,18 +258,14 @@
       const total     = values.reduce((a,b)=>a+b,0);
       const avg       = Math.round(total/values.length);
 
-      document.getElementById('ovTotal').textContent    = fmt(d.total_water);
-      document.getElementById('ovAvg').textContent      = fmt(avg);
-      document.getElementById('ovHighest').textContent  = d.highest_usage_building;
-      document.getElementById('ovEfficient').textContent= d.most_efficient_building;
+      document.getElementById('ovTotal').textContent     = fmt(d.total_water);
+      document.getElementById('ovAvg').textContent       = fmt(avg);
+      document.getElementById('ovHighest').textContent   = d.highest_usage_building;
+      document.getElementById('ovEfficient').textContent = d.most_efficient_building;
 
-      buildings.forEach(b=>{
-        const val = d.building_usage[b];
-        const el = document.getElementById('nav-val-'+b);
-        if (el) el.textContent = val>=1000000?(val/1000000).toFixed(2)+'M':val>=1000?(val/1000).toFixed(0)+'k':val;
-      });
-
-      switchBlock(buildings[0]||'A');
+      /* Auto-load block from URL param (?block=A), else default to first */
+      const urlBlock = new URLSearchParams(window.location.search).get('block');
+      switchBlock(urlBlock && buildings.includes(urlBlock) ? urlBlock : buildings[0]||'A');
     })
     .catch(()=>{ document.getElementById('loadingState').innerHTML='<div style="color:#d43a1a">⚠️ Failed to load data. Please refresh.</div>'; });
 </script>
