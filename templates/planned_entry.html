@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Smart Campus — Dashboard</title>
+  <title>Smart Campus — Planned Entry</title>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
@@ -21,66 +21,155 @@
     </div>
     <div class="live-badge"><div class="live-dot"></div> Live Data</div>
   </div>
-  <div class="chart-card full">
 
-  <div class="chart-hdr">
-    <div class="chart-title">📅 Planned Resource Entry</div>
-    <span class="chart-tag tag-coral">Input</span>
+  <!-- Input Form -->
+  <div class="chart-card full">
+    <div class="chart-hdr">
+      <div class="chart-title">📅 Planned Resource Entry</div>
+      <span class="chart-tag tag-coral">Input</span>
+    </div>
+
+    <form method="POST">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+
+        <div>
+          <label>Building</label>
+          <select name="building" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);">
+            <option value="A" {% if plan and plan.building=="A" %}selected{% endif %}>A Block</option>
+            <option value="B" {% if plan and plan.building=="B" %}selected{% endif %}>B Block</option>
+            <option value="C" {% if plan and plan.building=="C" %}selected{% endif %}>C Block</option>
+            <option value="D" {% if plan and plan.building=="D" %}selected{% endif %}>D Block</option>
+          </select>
+        </div>
+
+        <div>
+          <label>Rooms Occupied</label>
+          <input type="number" name="rooms" required
+            value="{{ plan.rooms|length if plan else '' }}"
+            style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);">
+        </div>
+
+        <div>
+          <label>Time Slot</label>
+          <select name="time_slot" style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);">
+            {% set slots = ["9:10 - 10:00","10:05 - 10:55","11:00 - 11:50","11:50 - 12:40","12:40 - 1:30","1:30 - 2:20","2:20 - 3:10","3:10 - 4:00"] %}
+            {% for s in slots %}
+            <option value="{{ s }}" {% if plan and plan.slot==s %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div>
+          <label>Date</label>
+          <input type="date" name="date" required
+            value="{{ plan.date if plan else '' }}"
+            style="width:100%;padding:10px;border-radius:10px;border:1px solid var(--border);">
+        </div>
+
+      </div>
+
+      <button type="submit"
+        style="margin-top:20px;padding:12px 28px;border:none;border-radius:12px;
+               background:var(--coral);color:white;font-weight:600;cursor:pointer;font-size:0.95rem;">
+        Generate Plan
+      </button>
+    </form>
   </div>
 
-  <form method="POST">
+  <!-- ── Plan Output ── -->
+  {% if plan %}
+  <div class="chart-card full" style="margin-top:1rem;">
 
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+    <div class="chart-hdr">
+      <div class="chart-title">📊 Resource Plan Summary</div>
+      <span class="chart-tag tag-coral">{{ plan.building }} Block · {{ plan.slot }} · {{ plan.date }}</span>
+    </div>
 
-      <div>
-        <label>Building</label>
-        <select name="building" style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border);">
-          <option value="A">A Block</option>
-          <option value="B">B Block</option>
-          <option value="C">C Block</option>
-          <option value="D">D Block</option>
-        </select>
+    <!-- 3 stat boxes -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:1.4rem;">
+
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center;">
+        <div style="font-size:2rem;font-weight:700;color:var(--coral);">{{ plan.rooms|length }}</div>
+        <div style="font-size:0.78rem;color:var(--muted);margin-top:2px;">Rooms Active</div>
       </div>
 
-      <div>
-        <label>Rooms Occupied</label>
-        <input type="number" name="rooms" required
-          style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border);">
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center;">
+        <div style="font-size:2rem;font-weight:700;color:var(--coral);">{{ plan.total_kwh }}</div>
+        <div style="font-size:0.78rem;color:var(--muted);margin-top:2px;">Est. kWh</div>
       </div>
 
-      <div>
-        <label>Time Slot</label>
-        <select name="time_slot"
-          style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border);">
-          <option value="1">9:10 - 10:00</option>
-          <option value="2">10:05 - 10:55</option>
-          <option value="3">11:00 - 11:50</option>
-          <option value="4">11:50 - 12:40</option>
-          <option value="5">12:40 - 1:30</option>
-          <option value="6">1:30 - 2:20</option>
-          <option value="7">2:20 - 3:10</option>
-          <option value="8">3:10 - 4:00</option>
-        </select>
-      </div>
-
-      <div>
-        <label>Date</label>
-        <input type="date" name="date" required
-          style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border);">
+      <div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:18px;text-align:center;">
+        <div style="font-size:2rem;font-weight:700;color:var(--coral);">{{ plan.ac_units_on }}</div>
+        <div style="font-size:0.78rem;color:var(--muted);margin-top:2px;">AC Units ON</div>
       </div>
 
     </div>
 
-    <button type="submit"
-      style="margin-top:20px; padding:12px 18px; border:none; border-radius:12px;
-             background:var(--coral); color:white; font-weight:600; cursor:pointer;">
-      Generate Plan
-    </button>
+    <!-- Room cards -->
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;">
+      {% for room in plan.rooms %}
+      <div style="border:1px solid var(--border);border-radius:12px;padding:12px 14px;background:var(--card);">
 
-  </form>
+        <div style="font-weight:600;font-size:0.88rem;margin-bottom:8px;">{{ room.room }}</div>
 
-</div>
-  
+        <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--muted);margin-bottom:3px;">
+          <span>Lights</span><span style="color:#2e9e6b;font-weight:500;">ON</span>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--muted);margin-bottom:3px;">
+          <span>AC</span>
+          <span style="font-weight:500;color:{% if room.ac %}#2e9e6b{% else %}#aaa{% endif %};">
+            {% if room.ac %}ON{% else %}OFF{% endif %}
+          </span>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--muted);margin-bottom:3px;">
+          <span>Projector</span>
+          <span style="font-weight:500;color:{% if room.projector %}#2e9e6b{% else %}#aaa{% endif %};">
+            {% if room.projector %}ON{% else %}OFF{% endif %}
+          </span>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--muted);margin-bottom:3px;">
+          <span>Fans</span>
+          <span style="font-weight:500;color:{% if room.fans %}#f0a500{% else %}#aaa{% endif %};">
+            {% if room.fans %}ON{% else %}OFF{% endif %}
+          </span>
+        </div>
+
+        <div style="font-size:0.72rem;color:var(--muted);border-top:1px solid var(--border);padding-top:6px;margin-top:6px;">
+          {{ room.est_kwh }} kWh est.
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Tip -->
+    <div style="margin-top:1.2rem;padding:12px 16px;background:#fffbeb;
+                border-left:4px solid #f0a500;border-radius:0 10px 10px 0;
+                font-size:0.82rem;color:#7a5800;">
+      💡 Estimated <strong>{{ plan.saved_vs_full }} kWh</strong> saved vs full-load by using occupancy-based planning.
+      Consider turning off AC in rooms with fans where ambient temp &lt; 26°C.
+    </div>
+
+    <!-- Confirm form -->
+    <form method="POST" style="margin-top:1.2rem;">
+      <input type="hidden" name="building"  value="{{ plan.building }}">
+      <input type="hidden" name="rooms"     value="{{ plan.rooms|length }}">
+      <input type="hidden" name="date"      value="{{ plan.date }}">
+      <input type="hidden" name="time_slot" value="{{ plan.slot }}">
+      <input type="hidden" name="confirmed" value="1">
+      <button type="submit"
+        style="padding:12px 28px;border:none;border-radius:12px;
+               background:#2e9e6b;color:white;font-weight:600;
+               cursor:pointer;font-size:0.9rem;">
+        ✅ Confirm &amp; Save to Dashboard
+      </button>
+    </form>
+
+  </div>
+  {% endif %}
 
 </main>
 
