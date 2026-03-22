@@ -5,71 +5,87 @@
   </div>
 
   <div class="nav-label">Analytics</div>
-  <a href="/dashboard" class="nav-item {% if active == 'dashboard' %}active{% endif %}">📊 Dashboard</a>
+
+  <!-- Dashboard -->
+  <a href="/dashboard" class="nav-item {% if active == 'dashboard' %}active{% endif %}">
+    📊 Dashboard
+  </a>
 
   <!-- Electricity -->
-  <div class="nav-parent elec" onclick="toggleSection('elec')">
+  <div class="nav-parent elec {% if active == 'electricity' %}active{% endif %}" onclick="toggleSection('elec')">
     ⚡ Electricity <span class="chev" id="chev-elec">▾</span>
   </div>
   <div class="block-subnav {% if active != 'electricity' %}hidden{% endif %}" id="subnav-elec">
-    <a href="/electricity?block=A" class="block-item">
-      <div class="block-item-left"><div class="block-dot"></div>Block A</div>
-    </a>
-    <a href="/electricity?block=B" class="block-item">
-      <div class="block-item-left"><div class="block-dot"></div>Block B</div>
-    </a>
-    <a href="/electricity?block=C" class="block-item">
-      <div class="block-item-left"><div class="block-dot"></div>Block C</div>
-    </a>
-    <a href="/electricity?block=D" class="block-item">
-      <div class="block-item-left"><div class="block-dot"></div>Block D</div>
-    </a>
+    <a href="/electricity?block=A" class="block-item">Block A</a>
+    <a href="/electricity?block=B" class="block-item">Block B</a>
+    <a href="/electricity?block=C" class="block-item">Block C</a>
+    <a href="/electricity?block=D" class="block-item">Block D</a>
   </div>
 
   <!-- Water -->
-  <div class="nav-parent water" onclick="toggleSection('water')">
+  <div class="nav-parent water {% if active == 'water' %}active{% endif %}" onclick="toggleSection('water')">
     💧 Water <span class="chev" id="chev-water">▾</span>
   </div>
   <div class="block-subnav {% if active != 'water' %}hidden{% endif %}" id="subnav-water">
-    <a href="/water?block=A" class="block-item">
-      <div class="block-item-left"><div class="block-dot"></div>Block A</div>
-    </a>
-    <a href="/water?block=B" class="block-item">
-      <div class="block-item-left"><div class="block-dot"></div>Block B</div>
-    </a>
-    <a href="/water?block=C" class="block-item">
-      <div class="block-item-left"><div class="block-dot"></div>Block C</div>
-    </a>
-    <a href="/water?block=D" class="block-item">
-      <div class="block-item-left"><div class="block-dot"></div>Block D</div>
-    </a>
+    <a href="/water?block=A" class="block-item">Block A</a>
+    <a href="/water?block=B" class="block-item">Block B</a>
+    <a href="/water?block=C" class="block-item">Block C</a>
+    <a href="/water?block=D" class="block-item">Block D</a>
   </div>
 
   <!-- Classrooms -->
-  <div class="nav-parent rooms" onclick="toggleSection('rooms')">
+  <div class="nav-parent rooms {% if active == 'classrooms' %}active{% endif %}" onclick="toggleSection('rooms')">
     🏫 Classrooms <span class="chev" id="chev-rooms">▾</span>
   </div>
   <div class="block-subnav {% if active != 'classrooms' %}hidden{% endif %}" id="subnav-rooms">
-    <a href="/classrooms?block=A" class="block-item">
-      <div class="block-item-left"><div class="block-dot"></div>Block A</div>
-    </a>
-    <a href="/classrooms?block=B" class="block-item">
-      <div class="block-item-left"><div class="block-dot"></div>Block B</div>
-    </a>
-    <a href="/classrooms?block=C" class="block-item">
-      <div class="block-item-left"><div class="block-dot"></div>Block C</div>
-    </a>
-    <a href="/classrooms?block=D" class="block-item">
-      <div class="block-item-left"><div class="block-dot"></div>Block D</div>
-    </a>
+    <a href="/classrooms?block=A" class="block-item">Block A</a>
+    <a href="/classrooms?block=B" class="block-item">Block B</a>
+    <a href="/classrooms?block=C" class="block-item">Block C</a>
+    <a href="/classrooms?block=D" class="block-item">Block D</a>
   </div>
-  <a href="/planned-entry" class="nav-item">📅 Planned Entry</a>
-  <a href="/live-entry" class="nav-item">⚡ Live Entry</a>
+
+  <!-- Entries -->
+  <a href="/planned-entry" class="nav-item {% if active == 'planned' %}active{% endif %}">
+    📅 Planned Entry
+  </a>
+  <a href="/live-entry" class="nav-item {% if active == 'live' %}active{% endif %}">
+    ⚡ Live Entry
+  </a>
 
   <div class="nav-label" style="margin-top:18px;">Reports</div>
-  <a href="/suggestions" class="nav-item {% if active == 'suggestions' %}active{% endif %}">💡 Suggestions</a>
+
+  <a href="/suggestions" class="nav-item {% if active == 'suggestions' %}active{% endif %}">
+    💡 Suggestions
+  </a>
 
   <div class="sidebar-footer">
-    <a href="/logout" class="logout-btn">🚪 &nbsp;Logout</a>
+    <a href="/logout" class="logout-btn">🚪 Logout</a>
   </div>
 </aside>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+  window.toggleSection = function(section) {
+    const sections = ["elec", "water", "rooms"];
+
+    sections.forEach(sec => {
+      const subnav = document.getElementById("subnav-" + sec);
+      const chev = document.getElementById("chev-" + sec);
+
+      if (!subnav || !chev) return;
+
+      if (sec === section) {
+        const isHidden = subnav.classList.contains("hidden");
+
+        subnav.classList.toggle("hidden");
+        chev.style.transform = isHidden ? "rotate(0deg)" : "rotate(-90deg)";
+      } else {
+        subnav.classList.add("hidden");
+        chev.style.transform = "rotate(-90deg)";
+      }
+    });
+  };
+
+});
+</script>

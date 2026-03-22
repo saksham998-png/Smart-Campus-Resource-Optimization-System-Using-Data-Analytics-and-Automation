@@ -18,9 +18,9 @@
     .nav-item.active { background:var(--surf2); color:var(--text); font-weight:600; }
     .nav-parent { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:10px; font-size:0.85rem; font-weight:600; cursor:pointer; margin-bottom:3px; user-select:none; }
     .nav-parent .chev { margin-left:auto; font-size:0.7rem; transition:transform 0.2s; }
-    .nav-parent.elec  { color:var(--coral);  background:rgba(232,68,26,0.08); }
-    .nav-parent.water { color:var(--teal);   background:rgba(26,128,96,0.08); }
-    .nav-parent.rooms { color:var(--indigo); background:rgba(45,58,204,0.08); }
+    .nav-parent.elec.active  { color:var(--coral);  background:rgba(232,68,26,0.08); }
+    .nav-parent.water.active { color:var(--teal);   background:rgba(26,128,96,0.08); }
+    .nav-parent.rooms.active { color:var(--indigo); background:rgba(45,58,204,0.08); }
     .block-subnav { padding-left:14px; margin-left:10px; margin-bottom:4px; overflow:hidden; transition:max-height 0.25s ease; max-height:200px; }
     .block-subnav.hidden { max-height:0; }
     .block-item { display:flex; align-items:center; justify-content:space-between; padding:7px 10px; border-radius:8px; font-size:0.82rem; color:var(--muted); cursor:pointer; margin-bottom:2px; transition:background 0.2s; text-decoration:none; }
