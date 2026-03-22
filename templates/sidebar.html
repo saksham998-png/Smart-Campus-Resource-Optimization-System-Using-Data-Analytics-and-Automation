@@ -54,9 +54,7 @@
 
   <div class="nav-label" style="margin-top:18px;">Reports</div>
 
-  <a href="/suggestions" class="nav-item {% if active == 'suggestions' %}active{% endif %}">
-    💡 Suggestions
-  </a>
+  
 
   <div class="sidebar-footer">
     <a href="/logout" class="logout-btn">🚪 Logout</a>
@@ -67,24 +65,20 @@
 document.addEventListener("DOMContentLoaded", function () {
 
   window.toggleSection = function(section) {
-    const sections = ["elec", "water", "rooms"];
+    const subnav = document.getElementById("subnav-" + section);
+    const chev = document.getElementById("chev-" + section);
 
-    sections.forEach(sec => {
-      const subnav = document.getElementById("subnav-" + sec);
-      const chev = document.getElementById("chev-" + sec);
+    if (!subnav || !chev) return;
 
-      if (!subnav || !chev) return;
+    const isOpen = subnav.classList.contains("open");
 
-      if (sec === section) {
-        const isHidden = subnav.classList.contains("hidden");
-
-        subnav.classList.toggle("hidden");
-        chev.style.transform = isHidden ? "rotate(0deg)" : "rotate(-90deg)";
-      } else {
-        subnav.classList.add("hidden");
-        chev.style.transform = "rotate(-90deg)";
-      }
-    });
+    if (isOpen) {
+      subnav.classList.remove("open");
+      chev.style.transform = "rotate(-90deg)";
+    } else {
+      subnav.classList.add("open");
+      chev.style.transform = "rotate(0deg)";
+    }
   };
 
 });
