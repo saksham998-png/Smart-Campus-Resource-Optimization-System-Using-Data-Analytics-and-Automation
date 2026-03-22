@@ -1,0 +1,73 @@
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-icon">🏛️</div>
+    <div class="brand-name">SmartCampus<span>Admin Panel</span></div>
+  </div>
+
+  <div class="nav-label">Analytics</div>
+  <a href="/dashboard" class="nav-item {% if active == 'dashboard' %}active{% endif %}">📊 Dashboard</a>
+
+  <!-- Electricity -->
+  <div class="nav-parent elec" onclick="toggleSection('elec')">
+    ⚡ Electricity <span class="chev" id="chev-elec">▾</span>
+  </div>
+  <div class="block-subnav {% if active != 'electricity' %}hidden{% endif %}" id="subnav-elec">
+    <a href="/electricity?block=A" class="block-item">
+      <div class="block-item-left"><div class="block-dot"></div>Block A</div>
+    </a>
+    <a href="/electricity?block=B" class="block-item">
+      <div class="block-item-left"><div class="block-dot"></div>Block B</div>
+    </a>
+    <a href="/electricity?block=C" class="block-item">
+      <div class="block-item-left"><div class="block-dot"></div>Block C</div>
+    </a>
+    <a href="/electricity?block=D" class="block-item">
+      <div class="block-item-left"><div class="block-dot"></div>Block D</div>
+    </a>
+  </div>
+
+  <!-- Water -->
+  <div class="nav-parent water" onclick="toggleSection('water')">
+    💧 Water <span class="chev" id="chev-water">▾</span>
+  </div>
+  <div class="block-subnav {% if active != 'water' %}hidden{% endif %}" id="subnav-water">
+    <a href="/water?block=A" class="block-item">
+      <div class="block-item-left"><div class="block-dot"></div>Block A</div>
+    </a>
+    <a href="/water?block=B" class="block-item">
+      <div class="block-item-left"><div class="block-dot"></div>Block B</div>
+    </a>
+    <a href="/water?block=C" class="block-item">
+      <div class="block-item-left"><div class="block-dot"></div>Block C</div>
+    </a>
+    <a href="/water?block=D" class="block-item">
+      <div class="block-item-left"><div class="block-dot"></div>Block D</div>
+    </a>
+  </div>
+
+  <!-- Classrooms -->
+  <div class="nav-parent rooms" onclick="toggleSection('rooms')">
+    🏫 Classrooms <span class="chev" id="chev-rooms">▾</span>
+  </div>
+  <div class="block-subnav {% if active != 'classrooms' %}hidden{% endif %}" id="subnav-rooms">
+    <a href="/classrooms?block=A" class="block-item">
+      <div class="block-item-left"><div class="block-dot"></div>Block A</div>
+    </a>
+    <a href="/classrooms?block=B" class="block-item">
+      <div class="block-item-left"><div class="block-dot"></div>Block B</div>
+    </a>
+    <a href="/classrooms?block=C" class="block-item">
+      <div class="block-item-left"><div class="block-dot"></div>Block C</div>
+    </a>
+    <a href="/classrooms?block=D" class="block-item">
+      <div class="block-item-left"><div class="block-dot"></div>Block D</div>
+    </a>
+  </div>
+
+  <div class="nav-label" style="margin-top:18px;">Reports</div>
+  <a href="/suggestions" class="nav-item {% if active == 'suggestions' %}active{% endif %}">💡 Suggestions</a>
+
+  <div class="sidebar-footer">
+    <a href="/logout" class="logout-btn">🚪 &nbsp;Logout</a>
+  </div>
+</aside>
