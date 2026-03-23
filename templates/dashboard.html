@@ -46,23 +46,12 @@
       <div id="sugList"></div>
     </div>
   </div>
-  <div>
-  <h3>⚡ Live Optimization Insights</h3>
-  <ul id="liveInsights"></ul>
-</div>
 
-<script>
-fetch("/api/data")
-  .then(res => res.json())
-  .then(data => {
-    const list = document.getElementById("liveInsights");
-    data.live_insights.forEach(item => {
-      const li = document.createElement("li");
-      li.innerText = item.message + " → " + item.suggestion;
-      list.appendChild(li);
-    });
-  });
-</script>
+  <div>
+    <h3>⚡ Live Optimization Insights</h3>
+    <div id="liveInsights"></div>
+  </div>
+
 </main>
 
 <div id="loadingState" style="margin-left:250px">
@@ -73,7 +62,6 @@ fetch("/api/data")
 <script>
   const C = { coral:'#e8441a', indigo:'#2d3acc', teal:'#1a8060', amber:'#f0b800' };
 
-  /* ── Sidebar toggle — each section independent ── */
   function toggleSection(section) {
     const subnav = document.getElementById('subnav-'+section);
     const chev   = document.getElementById('chev-'+section);
@@ -92,12 +80,14 @@ fetch("/api/data")
     scales:{ x:{grid:{color:'rgba(26,128,96,0.06)'},ticks:{color:'#4a8070',font:{family:'DM Sans',size:12}}}, y:{grid:{color:'rgba(26,128,96,0.06)'},ticks:{color:'#4a8070',font:{family:'DM Sans',size:12}}} }
   });
 
+  // ── Single fetch for all dashboard data ──
   fetch('/api/data')
     .then(r => r.json())
     .then(d => {
       document.getElementById('loadingState').style.display = 'none';
       document.getElementById('mainContent').style.display  = 'block';
 
+      // ── KPI Cards ──
       const B = d.buildings;
       const totalElec  = d.electricity.reduce((a,b)=>a+b,0);
       const avgUtil    = (d.utilization.reduce((a,b)=>a+b,0)/d.utilization.length).toFixed(1);
@@ -108,6 +98,7 @@ fetch("/api/data")
       document.getElementById('kpiHighest').textContent = d.highest_usage_building;
       document.getElementById('kpiWater').textContent   = totalWater.toLocaleString();
 
+      // ── Charts ──
       const ec = document.getElementById('elecChart').getContext('2d');
       new Chart(ec, { type:'bar', data:{labels:B, datasets:[{data:d.electricity, backgroundColor:grad(ec,C.coral), borderColor:C.coral, borderWidth:2, borderRadius:8}]}, options:baseOpts() });
 
@@ -117,6 +108,7 @@ fetch("/api/data")
       const wc = document.getElementById('waterChart').getContext('2d');
       new Chart(wc, { type:'bar', data:{labels:B, datasets:[{data:d.water, backgroundColor:grad(wc,C.teal), borderColor:C.teal, borderWidth:2, borderRadius:8}]}, options:baseOpts() });
 
+      // ── Smart Suggestions ──
       const list = document.getElementById('sugList');
       d.suggestions.forEach(s => {
         const div = document.createElement('div');
@@ -124,9 +116,41 @@ fetch("/api/data")
         div.textContent = s;
         list.appendChild(div);
       });
+
+      // ── Live Optimization Insights ──
+      const insightsList = document.getElementById('liveInsights');
+
+      if (!d.live_insights || d.live_insights.length === 0) {
+        insightsList.innerHTML = `
+          <div style="color:#888; padding:12px 16px; background:#f9f9f9; border-radius:8px; border-left:5px solid #ccc;">
+            No live insights yet — add both a <strong>Planned Entry</strong> and a <strong>Live Entry</strong>
+            for the same building, date, and time slot to see comparisons here.
+          </div>`;
+      } else {
+        d.live_insights.forEach(item => {
+          const card = document.createElement('div');
+
+          let color = '#2e9e6b'; // green = low/no issue
+          if (item.severity === 'high')   color = '#e05555'; // red
+          else if (item.severity === 'medium') color = '#f0a500'; // amber
+
+          card.style.borderLeft   = '5px solid ' + color;
+          card.style.padding      = '10px 14px';
+          card.style.marginBottom = '10px';
+          card.style.background   = '#f9f9f9';
+          card.style.borderRadius = '8px';
+
+          card.innerHTML = `
+            <strong>${item.message}</strong><br/>
+            <span style="color:#555">${item.suggestion}</span>
+          `;
+          insightsList.appendChild(card);
+        });
+      }
     })
     .catch(() => {
-      document.getElementById('loadingState').innerHTML = '<div style="color:#d43a1a">⚠️ Failed to load data. Please refresh.</div>';
+      document.getElementById('loadingState').innerHTML =
+        '<div style="color:#d43a1a">⚠️ Failed to load data. Please refresh.</div>';
     });
 </script>
 </body>
