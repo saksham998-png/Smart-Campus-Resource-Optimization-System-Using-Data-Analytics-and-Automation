@@ -49,14 +49,16 @@ def generate_live_insights(data):
                             "type":       "underutilization",
                             "building":   p["Building"],
                             "message":    f"{p['Building']} Block underutilized by {int(gap_percent)}%",
-                            "suggestion": "Reduce electricity usage or shift classes"
+                            "suggestion": "Reduce electricity usage or shift classes",
+                            "severity":   "medium"
                         })
                     elif gap_percent < -20:
                         insights.append({
                             "type":       "overutilization",
                             "building":   p["Building"],
                             "message":    f"{p['Building']} Block overutilized",
-                            "suggestion": "Increase resources or redistribute load"
+                            "suggestion": "Increase resources or redistribute load",
+                            "severity":   "high"
                         })
 
     return insights
@@ -308,9 +310,8 @@ building_wastage_counts = {}
 glitch_count = 0
 event_count  = 0
 
-# ── Fixed: renamed loop var to "b" to avoid overwriting global "building" ──
 for _, row in data.iterrows():
-    b           = row["Building"]          # <-- was "building", now "b"
+    b           = row["Building"]
     units       = int(row["Electricity_Units"])
     b_mean      = building_means[b]
     utilization = float((row["Rooms_Used"] / row["Total_Rooms"]) * 100)
