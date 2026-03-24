@@ -12,6 +12,28 @@ except (pd.errors.EmptyDataError, FileNotFoundError):
     data = pd.read_excel("smart_campus_200_row_dataset.xlsx")
     data["Data_Type"] = "historical"
     data.to_csv("campus_data.csv", index=False)
+    
+data = data[data["Rooms_Used"] > 0]
+
+    
+# ── BASELINE METRICS (IMPORTANT) ──
+
+# Per building avg per room electricity & water
+data["per_room_electricity"] = data["Electricity_Units"] / data["Rooms_Used"]
+data["per_room_water"] = data["Water_Usage_Liters"] / data["Rooms_Used"]
+
+baseline_metrics = data.groupby("Building").agg({
+    "per_room_electricity": "mean",
+    "per_room_water": "mean"
+}).round(2).to_dict("index")
+
+# Total rooms per block (hardcoded for now)
+TOTAL_ROOMS = {
+    "A": 50,
+    "B": 60,
+    "C": 33,
+    "D": 28
+}
 
 AVG_ELECTRICITY_PER_ROOM_PER_HOUR = 2   # units
 AVG_WATER_PER_ROOM_PER_HOUR = 10        # liters
@@ -102,60 +124,54 @@ def planned_entry():
 
         # ── Confirm & Save ──
         if request.form.get("confirmed") == "1":
-            electricity = rooms * hours * AVG_ELECTRICITY_PER_ROOM_PER_HOUR
-            water       = rooms * hours * AVG_WATER_PER_ROOM_PER_HOUR
+            per_room_elec  = baseline_metrics[bldg]["per_room_electricity"]
+            per_room_water = baseline_metrics[bldg]["per_room_water"]
+
+            electricity = round(rooms * per_room_elec, 2)
+            water       = round(rooms * per_room_water, 2)
+
             new_entry = {
-                "Building":           bldg,
-                "Electricity_Units":  electricity,
+                "Building": bldg,
+                "Electricity_Units": electricity,
                 "Water_Usage_Liters": water,
-                "Rooms_Used":         rooms,
-                "Total_Rooms":        40,
-                "Date":               date,
-                "Time_Slot":          time_slot,
-                "Data_Type":          "planned"
+                "Rooms_Used": rooms,
+                "Total_Rooms": TOTAL_ROOMS[bldg],
+                "Date": date,
+                "Time_Slot": time_slot,
+                "Data_Type": "planned"
             }
+
             global data
             data = pd.concat([data, pd.DataFrame([new_entry])], ignore_index=True)
             data.to_csv("campus_data.csv", index=False)
             return redirect(url_for("dashboard"))
 
-        # ── Generate Plan Preview ──
-        room_plan = []
-        for i in range(rooms):
-            ac        = (i % 3 != 2)
-            projector = (i % 2 == 0)
-            fans      = not ac
-            est_kwh   = round(
-                0.5 +
-                (2.5 if ac        else 0.2) +
-                (0.3 if projector else 0.0),
-                2
-            )
-            room_plan.append({
-                "room":      f"{bldg}-10{i + 1}",
-                "lights":    True,
-                "ac":        ac,
-                "projector": projector,
-                "fans":      fans,
-                "est_kwh":   est_kwh
-            })
+        # ── NEW CLEAN PLANNED LOGIC ──
+        total_rooms = TOTAL_ROOMS[bldg]
 
-        total_kwh     = round(sum(r["est_kwh"] for r in room_plan), 2)
-        saved_vs_full = round((40 - rooms) * AVG_ELECTRICITY_PER_ROOM_PER_HOUR, 2)
-        ac_units_on   = sum(1 for r in room_plan if r["ac"] is True)
+        # utilization %
+        utilization = round((rooms / total_rooms) * 100, 2)
+
+        # baseline values (from dataset)
+        per_room_elec  = baseline_metrics[bldg]["per_room_electricity"]
+        per_room_water = baseline_metrics[bldg]["per_room_water"]
+
+        # expected usage
+        expected_electricity = round(rooms * per_room_elec, 2)
+        expected_water       = round(rooms * per_room_water, 2)
 
         plan = {
-            "building":      bldg,
-            "slot":          time_slot,
-            "date":          date,
-            "rooms":         room_plan,
-            "total_kwh":     total_kwh,
-            "saved_vs_full": saved_vs_full,
-            "ac_units_on":   ac_units_on,
+            "building": bldg,
+            "slot": time_slot,
+            "date": date,
+            "planned_rooms": rooms,
+            "total_rooms": total_rooms,
+            "utilization": utilization,
+            "expected_electricity": expected_electricity,
+            "expected_water": expected_water
         }
 
     return render_template("planned_entry.html", plan=plan)
-
 
 @app.route("/live-entry", methods=["GET", "POST"])
 def live_entry():
