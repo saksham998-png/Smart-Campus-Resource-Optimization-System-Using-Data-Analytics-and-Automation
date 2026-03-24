@@ -199,4 +199,5 @@ Date,Building,Electricity_Units,Water_Usage_Liters,Rooms_Used,Total_Rooms,Data_T
 20-05-2026,B,1138,12079,48,60,historical,80.0,
 20-05-2026,C,706,9211,16,33,historical,48.484848484848484,
 20-05-2026,D,690,5893,13,28,historical,46.42857142857143,
-2026-03-23,A,50,250,25,40,planned,,1
+2026-03-23,A,50,250,25,40,planned,62.5,1.0
+2026-03-23,A,40,200,20,40,planned,,9:10 - 10:00
