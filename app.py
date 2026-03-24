@@ -186,18 +186,25 @@ def live_entry():
         date      = request.form["date"]
         time_slot = request.form["time_slot"]
         hours     = 1
+        electricity = float(request.form["electricity"])
+        water       = float(request.form["water"])
+        day_type    = request.form.get("day_type", "normal")
 
-        electricity = rooms * hours * AVG_ELECTRICITY_PER_ROOM_PER_HOUR
-        water       = rooms * hours * AVG_WATER_PER_ROOM_PER_HOUR
-
+        utilization = round((rooms / TOTAL_ROOMS[bldg]) * 100, 2)
+        per_room_elec  = baseline_metrics[bldg]["per_room_electricity"]
+        per_room_water = baseline_metrics[bldg]["per_room_water"]
+        
         new_entry = {
             "Building":           bldg,
             "Electricity_Units":  electricity,
             "Water_Usage_Liters": water,
             "Rooms_Used":         rooms,
-            "Total_Rooms":        40,
+            "Total_Rooms": TOTAL_ROOMS[bldg],
             "Date":               date,
             "Time_Slot":          time_slot,
+            "Utilization_Percentage": utilization,
+            "per_room_electricity": per_room_elec,
+            "per_room_water": per_room_water,
             "Data_Type":          "live"
         }
         global data
@@ -234,20 +241,6 @@ def live_entry():
             status_msg   = "No planned entry found for this slot"
             status_color = "#888"
 
-        # Room breakdown
-        room_breakdown = []
-        for i in range(rooms):
-            ac        = (i % 3 != 2)
-            projector = (i % 2 == 0)
-            fans      = not ac
-            est_kwh   = round(0.5 + (2.5 if ac else 0.2) + (0.3 if projector else 0), 2)
-            room_breakdown.append({
-                "room":      f"{bldg}-10{i + 1}",
-                "ac":        ac,
-                "projector": projector,
-                "fans":      fans,
-                "est_kwh":   est_kwh
-            })
 
         result = {
             "building":      bldg,
@@ -262,7 +255,6 @@ def live_entry():
             "status_color":  status_color,
             "electricity":   electricity,
             "water":         water,
-            "rooms":         room_breakdown,
         }
 
     return render_template("live_entry.html", result=result)
