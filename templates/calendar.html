@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Campus — Calendar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .cal-wrap { padding: 28px 32px; }
+    .cal-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:14px; }
+    .view-tabs { display:flex; gap:4px; background:#f0f0f0; border-radius:10px; padding:4px; }
+    .view-tab { background:none; border:none; border-radius:8px; padding:7px 22px; font-size:14px; font-weight:500; cursor:pointer; color:#666; font-family:'DM Sans',sans-serif; transition:all 0.15s; }
+    .view-tab.active { background:#fff; color:#2d3acc; box-shadow:0 1px 4px rgba(0,0,0,0.1); font-weight:700; }
+    .clock-box { display:flex; align-items:center; gap:14px; }
+    .clock-time { font-size:28px; font-weight:700; color:#0f2d25; font-family:'Syne',sans-serif; letter-spacing:-1px; }
+    .clock-date { font-size:12px; color:#888; line-height:1.6; text-align:right; font-family:'DM Sans',sans-serif; }
+    .add-btn { background:#2d3acc; color:#fff; border:none; border-radius:10px; padding:10px 22px; font-size:14px; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:background 0.15s; }
+    .add-btn:hover { background:#1a8060; }
+    .cal-card { background:#fff; border-radius:16px; border:1px solid #e0ede8; overflow:hidden; }
+    .cal-card-hdr { display:flex; align-items:center; justify-content:space-between; padding:16px 24px; border-bottom:1px solid #f0f5f2; }
+    .cal-card-title { font-size:17px; font-weight:700; color:#0f2d25; font-family:'Syne',sans-serif; margin:0; }
+    .nav-btns { display:flex; gap:6px; }
+    .nav-btn { background:none; border:1px solid #d0e5dc; border-radius:8px; width:34px; height:34px; cursor:pointer; font-size:18px; color:#4a8070; display:flex; align-items:center; justify-content:center; transition:background 0.12s; }
+    .nav-btn:hover { background:#f0f8f4; }
+    .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); }
+    .day-head { text-align:center; font-size:12px; font-weight:600; color:#4a8070; padding:10px 0 8px; background:#f9fcfb; border-bottom:1px solid #f0f5f2; font-family:'DM Sans',sans-serif; }
+    .cal-cell { border-right:1px solid #f3f8f5; border-bottom:1px solid #f3f8f5; min-height:95px; padding:8px 6px; cursor:pointer; transition:background 0.1s; }
+    .cal-cell:hover { background:#f4fbf7; }
+    .cal-cell:nth-child(7n) { border-right:none; }
+    .d-num { font-size:13px; font-weight:500; color:#4a8070; margin-bottom:5px; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border-radius:50%; font-family:'DM Sans',sans-serif; }
+    .d-num.is-today { background:#2d3acc; color:#fff; font-weight:700; }
+    .d-num.other-m { color:#ccc; }
+    .ev-chip { border-radius:7px; padding:4px 8px; font-size:11px; font-weight:600; margin-bottom:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.4; font-family:'DM Sans',sans-serif; }
+    .ev-time { font-size:10px; font-weight:400; opacity:0.8; }
+    .ev-chip.meeting     { background:#e8e7ff; color:#2d3acc; }
+    .ev-chip.course      { background:#d4f5ec; color:#1a7a5e; }
+    .ev-chip.design      { background:#fef3d4; color:#9a6b00; }
+    .ev-chip.event       { background:#fde6f0; color:#b5365a; }
+    .ev-chip.maintenance { background:#e4eeff; color:#1c5fa0; }
+    .time-lbl { width:66px; text-align:right; padding-right:14px; font-size:12px; color:#b0c8be; flex-shrink:0; padding-top:10px; font-family:'DM Sans',sans-serif; }
+    /* Modal */
+    .modal-bg { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.3); z-index:999; align-items:center; justify-content:center; }
+    .modal-box { background:#fff; border-radius:16px; padding:28px; width:390px; max-width:95vw; box-shadow:0 8px 40px rgba(0,0,0,0.15); }
+    .modal-title { font-size:17px; font-weight:700; color:#0f2d25; font-family:'Syne',sans-serif; margin:0 0 18px; }
+    .modal-label { font-size:12px; font-weight:600; color:#4a8070; display:block; margin-bottom:5px; font-family:'DM Sans',sans-serif; }
+    .modal-input { width:100%; box-sizing:border-box; border:1.5px solid #d0e5dc; border-radius:9px; padding:9px 12px; font-size:14px; outline:none; font-family:'DM Sans',sans-serif; color:#0f2d25; }
+    .modal-input:focus { border-color:#2d3acc; }
+    .modal-footer { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
+    .btn-cancel { background:none; border:1.5px solid #d0e5dc; border-radius:9px; padding:9px 20px; font-size:14px; cursor:pointer; color:#4a8070; font-family:'DM Sans',sans-serif; }
+    .btn-save { background:#2d3acc; color:#fff; border:none; border-radius:9px; padding:9px 24px; font-size:14px; cursor:pointer; font-weight:600; font-family:'DM Sans',sans-serif; }
+    .btn-save:hover { background:#1a8060; }
+  </style>
+</head>
+<body>
+
+{% include 'sidebar.html' %}
+
+<main class="main" id="mainContent" style="display:block; margin-left:250px;">
+  <div class="topbar">
+    <div>
+      <div class="page-title">📅 Campus Calendar</div>
+      <div class="page-sub">Schedule and manage campus events</div>
+    </div>
+    <div class="live-badge"><div class="live-dot"></div> Live</div>
+  </div>
+
+  <div class="cal-wrap" style="padding:0 0 28px;">
+
+    <!-- Top bar: tabs + clock + add button -->
+    <div class="cal-topbar">
+      <div class="view-tabs">
+        <button id="btnMonth" class="view-tab active" onclick="setView('month')">Month</button>
+        <button id="btnWeek"  class="view-tab"        onclick="setView('week')">Week</button>
+        <button id="btnDay"   class="view-tab"        onclick="setView('day')">Day</button>
+      </div>
+      <div class="clock-box">
+        <div class="clock-time" id="liveClock"></div>
+        <div class="clock-date" id="liveDate"></div>
+      </div>
+      <button class="add-btn" onclick="openModal('')">+ Add Event</button>
+    </div>
+
+    <!-- Calendar card -->
+    <div class="cal-card">
+      <div class="cal-card-hdr">
+        <h3 class="cal-card-title" id="calTitle"></h3>
+        <div class="nav-btns">
+          <button class="nav-btn" onclick="navBack()">&#8249;</button>
+          <button class="nav-btn" onclick="navNext()">&#8250;</button>
+        </div>
+      </div>
+      <div id="calBody"></div>
+    </div>
+
+  </div>
+</main>
+
+<!-- Add Event Modal -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal-box">
+    <p class="modal-title">Add New Event</p>
+    <div style="margin-bottom:13px;">
+      <label class="modal-label">Event Title</label>
+      <input type="text" id="evTitle" class="modal-input" placeholder="e.g. Faculty Meeting">
+    </div>
+    <div style="margin-bottom:13px;">
+      <label class="modal-label">Date</label>
+      <input type="date" id="evDate" class="modal-input">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:13px;">
+      <div>
+        <label class="modal-label">Start Time</label>
+        <input type="time" id="evStart" class="modal-input">
+      </div>
+      <div>
+        <label class="modal-label">End Time</label>
+        <input type="time" id="evEnd" class="modal-input">
+      </div>
+    </div>
+    <div style="margin-bottom:4px;">
+      <label class="modal-label">Category</label>
+      <select id="evCat" class="modal-input" style="background:#fff;">
+        <option value="meeting">Meeting</option>
+        <option value="course">Visit Course</option>
+        <option value="design">Design</option>
+        <option value="event">Campus Event</option>
+        <option value="maintenance">Maintenance</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save"   onclick="saveEvent()">Save Event</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── toggle sidebar (same as dashboard) ──
+  function toggleSection(section) {
+    const subnav = document.getElementById('subnav-'+section);
+    const chev   = document.getElementById('chev-'+section);
+    subnav.classList.toggle('hidden');
+    chev.style.transform = subnav.classList.contains('hidden') ? 'rotate(-90deg)' : '';
+  }
+
+  // ── State ──
+  let view = 'month', curDate = new Date();
+  let events = JSON.parse(localStorage.getItem('scCampusCalEvs') || '{}');
+
+  const DAYS   = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const MONTHS = ['January','February','March','April','May','June',
+                  'July','August','September','October','November','December'];
+
+  function dk(y, m, d) {
+    return y + '-' + String(m+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+  }
+  function todayKey() {
+    const n = new Date();
+    return dk(n.getFullYear(), n.getMonth(), n.getDate());
+  }
+
+  // ── View switcher ──
+  function setView(v) {
+    view = v;
+    ['Month','Week','Day'].forEach(x => document.getElementById('btn'+x).classList.remove('active'));
+    document.getElementById('btn' + v.charAt(0).toUpperCase() + v.slice(1)).classList.add('active');
+    render();
+  }
+
+  function navBack() {
+    if (view==='month') curDate.setMonth(curDate.getMonth()-1);
+    else if (view==='week') curDate.setDate(curDate.getDate()-7);
+    else curDate.setDate(curDate.getDate()-1);
+    render();
+  }
+  function navNext() {
+    if (view==='month') curDate.setMonth(curDate.getMonth()+1);
+    else if (view==='week') curDate.setDate(curDate.getDate()+7);
+    else curDate.setDate(curDate.getDate()+1);
+    render();
+  }
+
+  function render() {
+    if (view==='month') renderMonth();
+    else if (view==='week') renderWeek();
+    else renderDay();
+  }
+
+  // ── Month View ──
+  function renderMonth() {
+    const y = curDate.getFullYear(), m = curDate.getMonth();
+    document.getElementById('calTitle').textContent = MONTHS[m] + ' ' + y;
+    const firstDow = (new Date(y,m,1).getDay()+6) % 7;
+    const dim  = new Date(y, m+1, 0).getDate();
+    const dimp = new Date(y, m, 0).getDate();
+    const tk = todayKey();
+    let html = '<div class="cal-grid">';
+    DAYS.forEach(d => { html += `<div class="day-head">${d}</div>`; });
+    const total = Math.ceil((firstDow + dim) / 7) * 7;
+    for (let i = 0; i < total; i++) {
+      let dn, dkey, other = false;
+      if (i < firstDow) {
+        dn = dimp - firstDow + i + 1; other = true;
+        const pm = m-1 < 0 ? 11 : m-1, py = m-1 < 0 ? y-1 : y;
+        dkey = dk(py, pm, dn);
+      } else if (i >= firstDow + dim) {
+        dn = i - firstDow - dim + 1; other = true;
+        const nm = m+1 > 11 ? 0 : m+1, ny = m+1 > 11 ? y+1 : y;
+        dkey = dk(ny, nm, dn);
+      } else {
+        dn = i - firstDow + 1;
+        dkey = dk(y, m, dn);
+      }
+      const isT = (dkey === tk && !other);
+      const evs = events[dkey] || [];
+      html += `<div class="cal-cell" onclick="openModal('${dkey}')">`;
+      html += `<div class="d-num${isT?' is-today':(other?' other-m':'')}">${dn}</div>`;
+      evs.slice(0,2).forEach(ev => {
+        const t = ev.start && ev.end ? ev.start+'–'+ev.end : '';
+        html += `<div class="ev-chip ${ev.cat||'meeting'}">${ev.title}${t?`<br><span class="ev-time">${t}</span>`:''}</div>`;
+      });
+      if (evs.length > 2) html += `<div style="font-size:10px;color:#aaa;padding-left:2px;">+${evs.length-2} more</div>`;
+      html += `</div>`;
+    }
+    html += '</div>';
+    document.getElementById('calBody').innerHTML = html;
+  }
+
+  // ── Week View ──
+  function renderWeek() {
+    const dow = (curDate.getDay()+6) % 7;
+    const ws = new Date(curDate); ws.setDate(curDate.getDate() - dow);
+    const days = [];
+    for (let i = 0; i < 7; i++) { const d = new Date(ws); d.setDate(ws.getDate()+i); days.push(d); }
+    const tk = todayKey();
+    document.getElementById('calTitle').textContent =
+      days[0].getDate()+' '+MONTHS[days[0].getMonth()]+' – '+days[6].getDate()+' '+MONTHS[days[6].getMonth()]+' '+days[6].getFullYear();
+    let html = '<div style="display:flex;border-bottom:1px solid #f0f5f2;">';
+    html += '<div style="width:66px;"></div>';
+    days.forEach(d => {
+      const dkey = dk(d.getFullYear(), d.getMonth(), d.getDate());
+      const isT  = dkey === tk;
+      html += `<div style="flex:1;border-left:1px solid #f0f5f2;text-align:center;padding:10px 4px;">
+        <div style="font-size:11px;color:#4a8070;font-weight:600;font-family:'DM Sans',sans-serif;">${DAYS[(d.getDay()+6)%7]}</div>
+        <div style="width:30px;height:30px;border-radius:50%;margin:4px auto 0;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;font-family:'Syne',sans-serif;${isT?'background:#2d3acc;color:#fff;':'color:#0f2d25;'}">${d.getDate()}</div>
+      </div>`;
+    });
+    html += '</div>';
+    for (let h = 8; h <= 19; h++) {
+      html += `<div style="display:flex;border-top:1px solid #f8fbf9;min-height:52px;">`;
+      html += `<div class="time-lbl">${String(h).padStart(2,'0')}:00</div>`;
+      days.forEach(d => {
+        const dkey = dk(d.getFullYear(), d.getMonth(), d.getDate());
+        const slotEvs = (events[dkey]||[]).filter(ev => ev.start && parseInt(ev.start.split(':')[0])===h);
+        html += `<div style="flex:1;border-left:1px solid #f0f5f2;padding:3px;cursor:pointer;" onclick="openModal('${dkey}')">`;
+        slotEvs.forEach(ev => {
+          html += `<div class="ev-chip ${ev.cat||'meeting'}">${ev.title}<br><span class="ev-time">${ev.start||''}–${ev.end||''}</span></div>`;
+        });
+        html += `</div>`;
+      });
+      html += `</div>`;
+    }
+    document.getElementById('calBody').innerHTML = html;
+  }
+
+  // ── Day View ──
+  function renderDay() {
+    const dkey = dk(curDate.getFullYear(), curDate.getMonth(), curDate.getDate());
+    const dn   = DAYS[(curDate.getDay()+6)%7];
+    document.getElementById('calTitle').textContent =
+      dn+', '+curDate.getDate()+' '+MONTHS[curDate.getMonth()]+' '+curDate.getFullYear();
+    const dayEvs = events[dkey] || [];
+    let html = '';
+    for (let h = 6; h <= 21; h++) {
+      const slotEvs = dayEvs.filter(ev => ev.start && parseInt(ev.start.split(':')[0])===h);
+      html += `<div style="display:flex;border-top:1px solid #f5f9f7;min-height:54px;cursor:pointer;" onclick="openModal('${dkey}')">`;
+      html += `<div class="time-lbl">${String(h).padStart(2,'0')}:00</div>`;
+      html += `<div style="flex:1;padding:6px 10px;">`;
+      slotEvs.forEach(ev => {
+        html += `<div class="ev-chip ${ev.cat||'meeting'}" style="display:inline-block;margin-right:8px;margin-bottom:4px;">${ev.title} <span class="ev-time">${ev.start||''}–${ev.end||''}</span></div>`;
+      });
+      html += `</div></div>`;
+    }
+    if (!dayEvs.length) html += '<div style="padding:48px;text-align:center;color:#b0c8be;font-size:14px;font-family:\'DM Sans\',sans-serif;">No events today. Click any row to add one.</div>';
+    document.getElementById('calBody').innerHTML = html;
+  }
+
+  // ── Modal ──
+  function openModal(dkey) {
+    if (dkey) document.getElementById('evDate').value = dkey;
+    document.getElementById('modalBg').style.display = 'flex';
+  }
+  function closeModal() {
+    document.getElementById('modalBg').style.display = 'none';
+  }
+  function saveEvent() {
+    const title = document.getElementById('evTitle').value.trim();
+    const date  = document.getElementById('evDate').value;
+    const start = document.getElementById('evStart').value;
+    const end   = document.getElementById('evEnd').value;
+    const cat   = document.getElementById('evCat').value;
+    if (!title || !date) { alert('Please enter a title and date.'); return; }
+    if (!events[date]) events[date] = [];
+    events[date].push({ title, start, end, cat });
+    localStorage.setItem('scCampusCalEvs', JSON.stringify(events));
+    closeModal();
+    document.getElementById('evTitle').value = '';
+    document.getElementById('evStart').value = '';
+    document.getElementById('evEnd').value   = '';
+    render();
+  }
+
+  // ── Live Clock ──
+  function tick() {
+    const n = new Date();
+    let h = n.getHours(), mi = n.getMinutes(), ap = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    document.getElementById('liveClock').textContent = h + ':' + String(mi).padStart(2,'0') + ' ' + ap;
+    document.getElementById('liveDate').textContent  = n.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+  }
+  setInterval(tick, 1000);
+  tick();
+
+  render();
+</script>
+
+</body>
+</html>
