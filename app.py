@@ -429,5 +429,9 @@ def water_data():
     })
 
 
+@app.route('/calendar')
+def calendar():
+    return render_template('calendar.html', active='calendar')
+  
 if __name__ == "__main__":
     app.run(debug=True)
