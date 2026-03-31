@@ -7,6 +7,38 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .no-live-banner {
+      background: rgba(240,184,0,0.08); border: 1.5px solid rgba(240,184,0,0.35);
+      border-radius: 14px; padding: 18px 22px; margin-bottom: 24px;
+      display: flex; align-items: center; gap: 14px;
+    }
+    .no-live-banner .icon { font-size: 24px; flex-shrink: 0; }
+    .no-live-banner .msg  { font-size: 0.88rem; color: #5a4000; line-height: 1.6; }
+    .no-live-banner .msg strong { display: block; font-family: 'Syne', sans-serif; font-size: 0.95rem; margin-bottom: 3px; }
+    .no-live-banner a { color: var(--indigo); font-weight: 600; }
+    .data-source-tag {
+      font-size: 0.72rem; padding: 3px 10px; border-radius: 20px; font-weight: 600;
+      background: rgba(26,128,96,0.1); color: var(--teal); margin-left: 8px;
+    }
+    .analysis-cta {
+      background: linear-gradient(135deg, rgba(45,58,204,0.06), rgba(26,128,96,0.06));
+      border: 1.5px solid rgba(45,58,204,0.18); border-radius: 16px;
+      padding: 22px 26px; display: flex; align-items: center;
+      justify-content: space-between; gap: 16px; margin-top: 24px;
+    }
+    .analysis-cta-left .title {
+      font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem;
+      color: var(--text); margin-bottom: 4px;
+    }
+    .analysis-cta-left .sub { font-size: 0.82rem; color: var(--muted); }
+    .analysis-cta-btn {
+      padding: 10px 22px; background: var(--indigo); color: white; border-radius: 10px;
+      text-decoration: none; font-size: 0.85rem; font-weight: 600; white-space: nowrap;
+      transition: background 0.2s;
+    }
+    .analysis-cta-btn:hover { background: #2030b0; }
+  </style>
 </head>
 <body>
 
@@ -16,29 +48,66 @@
   <div class="topbar">
     <div>
       <div class="page-title">Resource Dashboard</div>
-      <div class="page-sub">Campus-wide energy &amp; space analytics</div>
+      <div class="page-sub">
+        Campus-wide analytics — based on live entries
+        <span class="data-source-tag" id="entryCount">loading…</span>
+      </div>
     </div>
     <div class="live-badge"><div class="live-dot"></div> Live Data</div>
   </div>
 
+  <div class="no-live-banner" id="noLiveBanner" style="display:none">
+    <div class="icon">ℹ️</div>
+    <div class="msg">
+      <strong>No live entries yet</strong>
+      Go to <a href="/live-entry">Live Entry</a> to submit your first reading.
+      The charts below will populate automatically.
+    </div>
+  </div>
+
   <div class="kpi-grid">
-    <div class="kpi-card c-coral"><div class="kpi-icon">⚡</div><div class="kpi-label">Total Electricity</div><div class="kpi-value" id="kpiElec">—</div><div class="kpi-sub">units consumed</div></div>
-    <div class="kpi-card c-teal"><div class="kpi-icon">💧</div><div class="kpi-label">Total Water</div><div class="kpi-value" id="kpiWater">—</div><div class="kpi-sub">liters consumed</div></div>
-    <div class="kpi-card c-indigo"><div class="kpi-icon">🏫</div><div class="kpi-label">Avg Utilization</div><div class="kpi-value" id="kpiUtil">—</div><div class="kpi-sub">across all buildings</div></div>
-    <div class="kpi-card c-amber"><div class="kpi-icon">🏆</div><div class="kpi-label">Highest Usage</div><div class="kpi-value" id="kpiHighest" style="font-size:1rem">—</div><div class="kpi-sub">peak electricity building</div></div>
+    <div class="kpi-card c-coral">
+      <div class="kpi-icon">⚡</div><div class="kpi-label">Avg Electricity</div>
+      <div class="kpi-value" id="kpiElec">—</div>
+      <div class="kpi-sub">units / entry (live avg)</div>
+    </div>
+    <div class="kpi-card c-teal">
+      <div class="kpi-icon">💧</div><div class="kpi-label">Avg Water</div>
+      <div class="kpi-value" id="kpiWater">—</div>
+      <div class="kpi-sub">liters / entry (live avg)</div>
+    </div>
+    <div class="kpi-card c-indigo">
+      <div class="kpi-icon">🏫</div><div class="kpi-label">Avg Utilization</div>
+      <div class="kpi-value" id="kpiUtil">—</div>
+      <div class="kpi-sub">across live entries</div>
+    </div>
+    <div class="kpi-card c-amber">
+      <div class="kpi-icon">🏆</div><div class="kpi-label">Highest Usage</div>
+      <div class="kpi-value" id="kpiHighest">—</div>
+      <div class="kpi-sub">peak electricity block</div>
+    </div>
   </div>
 
   <div class="charts-grid">
     <div class="chart-card">
-      <div class="chart-hdr"><div class="chart-title">⚡ Electricity Usage per Building</div><span class="chart-tag tag-coral">Units</span></div>
+      <div class="chart-hdr">
+        <div class="chart-title">⚡ Avg Electricity per Block</div>
+        <span class="chart-tag tag-coral">Units (live avg)</span>
+      </div>
       <canvas id="elecChart"></canvas>
     </div>
     <div class="chart-card">
-      <div class="chart-hdr"><div class="chart-title">🏫 Classroom Utilization</div><span class="chart-tag tag-indigo">% Occupied</span></div>
+      <div class="chart-hdr">
+        <div class="chart-title">🏫 Avg Classroom Utilization</div>
+        <span class="chart-tag tag-indigo">% Occupied (live avg)</span>
+      </div>
       <canvas id="utilChart"></canvas>
     </div>
     <div class="chart-card">
-      <div class="chart-hdr"><div class="chart-title">💧 Water Usage Overview</div><span class="chart-tag tag-teal">Liters</span></div>
+      <div class="chart-hdr">
+        <div class="chart-title">💧 Avg Water per Block</div>
+        <span class="chart-tag tag-teal">Liters (live avg)</span>
+      </div>
       <canvas id="waterChart"></canvas>
     </div>
     <div class="sug-card">
@@ -47,9 +116,12 @@
     </div>
   </div>
 
-  <div>
-    <h3>⚡ Live Optimization Insights</h3>
-    <div id="liveInsights"></div>
+  <div class="analysis-cta">
+    <div class="analysis-cta-left">
+      <div class="title">📊 Want to compare Planned vs Live?</div>
+      <div class="sub">Go to the Analysis page for block-wise, date-filtered breakdown of planned vs live — electricity, water &amp; rooms.</div>
+    </div>
+    <a href="/analysis" class="analysis-cta-btn">Open Analysis →</a>
   </div>
 
 </main>
@@ -75,82 +147,67 @@
   }
 
   const baseOpts = () => ({
-    responsive:true,
-    plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#fff', borderColor:'#c8e8de', borderWidth:1, padding:10, cornerRadius:8, titleColor:'#0f2d25', bodyColor:'#4a8070', titleFont:{family:'DM Sans'}, bodyFont:{family:'DM Sans'} } },
-    scales:{ x:{grid:{color:'rgba(26,128,96,0.06)'},ticks:{color:'#4a8070',font:{family:'DM Sans',size:12}}}, y:{grid:{color:'rgba(26,128,96,0.06)'},ticks:{color:'#4a8070',font:{family:'DM Sans',size:12}}} }
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: { backgroundColor:'#fff', borderColor:'#c8e8de', borderWidth:1, padding:10, cornerRadius:8, titleColor:'#0f2d25', bodyColor:'#4a8070', titleFont:{family:'DM Sans'}, bodyFont:{family:'DM Sans'} }
+    },
+    scales: {
+      x: { grid:{color:'rgba(26,128,96,0.06)'}, ticks:{color:'#4a8070', font:{family:'DM Sans',size:12}} },
+      y: { grid:{color:'rgba(26,128,96,0.06)'}, ticks:{color:'#4a8070', font:{family:'DM Sans',size:12}} }
+    }
   });
 
-  // ── Single fetch for all dashboard data ──
-  fetch('/api/data')
+  fetch('/api/live-dashboard')
     .then(r => r.json())
     .then(d => {
       document.getElementById('loadingState').style.display = 'none';
       document.getElementById('mainContent').style.display  = 'block';
 
-      // ── KPI Cards ──
-      const B = d.buildings;
-      const totalElec  = d.electricity.reduce((a,b)=>a+b,0);
-      const avgUtil    = (d.utilization.reduce((a,b)=>a+b,0)/d.utilization.length).toFixed(1);
-      const totalWater = d.water.reduce((a,b)=>a+b,0);
+      if (!d.has_data) {
+        document.getElementById('noLiveBanner').style.display = 'flex';
+        document.getElementById('entryCount').textContent = '0 live entries';
+        const list = document.getElementById('sugList');
+        d.suggestions.forEach(s => {
+          const div = document.createElement('div'); div.className = 'sug-item';
+          div.textContent = s; list.appendChild(div);
+        });
+        return;
+      }
 
-      document.getElementById('kpiElec').textContent    = totalElec.toLocaleString();
-      document.getElementById('kpiUtil').textContent    = avgUtil+'%';
-      document.getElementById('kpiHighest').textContent = d.highest_usage_building;
-      document.getElementById('kpiWater').textContent   = totalWater.toLocaleString();
+      const B    = d.buildings;
+      const elec = B.map(b => d.avg_electricity[b] || 0);
+      const util = B.map(b => d.avg_utilization[b] || 0);
+      const wtr  = B.map(b => d.avg_water[b]       || 0);
 
-      // ── Charts ──
+      const campusAvgElec = elec.length ? (elec.reduce((a,v)=>a+v,0)/elec.length).toFixed(1) : '—';
+      const campusAvgUtil = util.length ? (util.reduce((a,v)=>a+v,0)/util.length).toFixed(1) : '—';
+      const campusAvgWtr  = wtr.length  ? (wtr.reduce((a,v)=>a+v,0)/wtr.length).toFixed(1)   : '—';
+
+      document.getElementById('kpiElec').textContent    = Number(campusAvgElec).toLocaleString();
+      document.getElementById('kpiUtil').textContent    = campusAvgUtil + '%';
+      document.getElementById('kpiWater').textContent   = Number(campusAvgWtr).toLocaleString();
+      document.getElementById('kpiHighest').textContent = 'Block ' + d.highest_elec_building;
+      document.getElementById('entryCount').textContent = d.total_entries + ' live entries';
+
       const ec = document.getElementById('elecChart').getContext('2d');
-      new Chart(ec, { type:'bar', data:{labels:B, datasets:[{data:d.electricity, backgroundColor:grad(ec,C.coral), borderColor:C.coral, borderWidth:2, borderRadius:8}]}, options:baseOpts() });
+      new Chart(ec, { type:'bar',  data:{labels:B.map(b=>'Block '+b), datasets:[{data:elec, backgroundColor:grad(ec,C.coral),  borderColor:C.coral,  borderWidth:2, borderRadius:8}]}, options:baseOpts() });
 
       const uc = document.getElementById('utilChart').getContext('2d');
-      new Chart(uc, { type:'line', data:{labels:B, datasets:[{data:d.utilization, borderColor:C.indigo, backgroundColor:grad(uc,C.indigo), borderWidth:2.5, pointBackgroundColor:C.indigo, pointRadius:5, tension:0.4, fill:true}]}, options:baseOpts() });
+      new Chart(uc, { type:'line', data:{labels:B.map(b=>'Block '+b), datasets:[{data:util, borderColor:C.indigo, backgroundColor:grad(uc,C.indigo), borderWidth:2.5, pointBackgroundColor:C.indigo, pointRadius:5, tension:0.4, fill:true}]}, options:baseOpts() });
 
       const wc = document.getElementById('waterChart').getContext('2d');
-      new Chart(wc, { type:'bar', data:{labels:B, datasets:[{data:d.water, backgroundColor:grad(wc,C.teal), borderColor:C.teal, borderWidth:2, borderRadius:8}]}, options:baseOpts() });
+      new Chart(wc, { type:'bar',  data:{labels:B.map(b=>'Block '+b), datasets:[{data:wtr,  backgroundColor:grad(wc,C.teal),  borderColor:C.teal,   borderWidth:2, borderRadius:8}]}, options:baseOpts() });
 
-      // ── Smart Suggestions ──
       const list = document.getElementById('sugList');
       d.suggestions.forEach(s => {
-        const div = document.createElement('div');
-        div.className = 'sug-item';
-        div.textContent = s;
-        list.appendChild(div);
+        const div = document.createElement('div'); div.className = 'sug-item';
+        div.textContent = s; list.appendChild(div);
       });
-
-      // ── Live Optimization Insights ──
-      const insightsList = document.getElementById('liveInsights');
-
-      if (!d.live_insights || d.live_insights.length === 0) {
-        insightsList.innerHTML = `
-          <div style="color:#888; padding:12px 16px; background:#f9f9f9; border-radius:8px; border-left:5px solid #ccc;">
-            No live insights yet — add both a <strong>Planned Entry</strong> and a <strong>Live Entry</strong>
-            for the same building, date, and time slot to see comparisons here.
-          </div>`;
-      } else {
-        d.live_insights.forEach(item => {
-          const card = document.createElement('div');
-
-          let color = '#2e9e6b'; // green = low/no issue
-          if (item.severity === 'high')   color = '#e05555'; // red
-          else if (item.severity === 'medium') color = '#f0a500'; // amber
-
-          card.style.borderLeft   = '5px solid ' + color;
-          card.style.padding      = '10px 14px';
-          card.style.marginBottom = '10px';
-          card.style.background   = '#f9f9f9';
-          card.style.borderRadius = '8px';
-
-          card.innerHTML = `
-            <strong>${item.message}</strong><br/>
-            <span style="color:#555">${item.suggestion}</span>
-          `;
-          insightsList.appendChild(card);
-        });
-      }
     })
     .catch(() => {
       document.getElementById('loadingState').innerHTML =
-        '<div style="color:#d43a1a">⚠️ Failed to load data. Please refresh.</div>';
+        '<div style="color:#d43a1a;margin:40px auto;text-align:center">⚠️ Failed to load data. Please refresh.</div>';
     });
 </script>
 </body>
