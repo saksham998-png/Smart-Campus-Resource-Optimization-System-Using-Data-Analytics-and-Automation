@@ -288,6 +288,173 @@ def suggestions_page():
     return render_template("suggestions.html", active="suggestions")
 
 
+@app.route("/analysis")
+def analysis():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+    return render_template("analysis.html", active="analysis")
+
+
+@app.route("/api/live-dashboard")
+def live_dashboard():
+    """
+    KPI data for dashboard — computed from LIVE entries only.
+    Falls back gracefully if no live data exists yet.
+    """
+    global data
+    live = data[data["Data_Type"] == "live"].copy()
+
+    if live.empty:
+        return jsonify({
+            "has_data": False,
+            "buildings": [],
+            "avg_electricity": {},
+            "avg_water": {},
+            "avg_utilization": {},
+            "total_entries": 0,
+            "suggestions": [
+                "No live entries yet — add live data via the Live Entry form.",
+                "🌱 Switch to LED lighting to reduce electricity load.",
+                "📅 Schedule maintenance during low-utilization periods.",
+            ]
+        })
+
+    live["Utilization_Percentage"] = (live["Rooms_Used"] / live["Total_Rooms"]) * 100
+
+    avg_elec  = live.groupby("Building")["Electricity_Units"].mean().round(2).to_dict()
+    avg_water = live.groupby("Building")["Water_Usage_Liters"].mean().round(2).to_dict()
+    avg_util  = live.groupby("Building")["Utilization_Percentage"].mean().round(2).to_dict()
+
+    buildings = sorted(set(avg_elec) | set(avg_water) | set(avg_util))
+
+    highest_elec = max(avg_elec, key=avg_elec.get) if avg_elec else "—"
+    lowest_util  = min(avg_util,  key=avg_util.get)  if avg_util  else "—"
+
+    suggestions = [
+        f"⚡ Block {highest_elec} has the highest avg electricity — consider an energy audit.",
+        f"🏫 Block {lowest_util} has the lowest avg utilization ({avg_util.get(lowest_util, 0):.1f}%) — consider reassigning rooms.",
+        "🌱 Switch to LED lighting in high-usage buildings to reduce electricity load.",
+        "📅 Schedule maintenance during low-utilization periods to minimize disruption.",
+    ]
+
+    return jsonify({
+        "has_data":        True,
+        "buildings":       buildings,
+        "avg_electricity": {b: avg_elec.get(b,  0) for b in buildings},
+        "avg_water":       {b: avg_water.get(b, 0) for b in buildings},
+        "avg_utilization": {b: avg_util.get(b,  0) for b in buildings},
+        "total_entries":   len(live),
+        "highest_elec_building": highest_elec,
+        "suggestions":     suggestions,
+    })
+
+
+@app.route("/api/analysis")
+def analysis_api():
+    """
+    Planned vs Live comparison filtered by date range.
+    Query params: date_from, date_to  (YYYY-MM-DD, both optional)
+    """
+    global data
+    date_from = request.args.get("date_from", "")
+    date_to   = request.args.get("date_to",   "")
+
+    planned = data[data["Data_Type"] == "planned"].copy()
+    live    = data[data["Data_Type"] == "live"].copy()
+
+    # normalise
+    planned["_date"] = planned["Date"].astype(str).str[:10]
+    live["_date"]    = live["Date"].astype(str).str[:10]
+    planned["_slot"] = planned["Time_Slot"].astype(str).str.strip()
+    live["_slot"]    = live["Time_Slot"].astype(str).str.strip()
+
+    # apply date filter
+    if date_from:
+        planned = planned[planned["_date"] >= date_from]
+        live    = live[live["_date"]    >= date_from]
+    if date_to:
+        planned = planned[planned["_date"] <= date_to]
+        live    = live[live["_date"]    <= date_to]
+
+    # available dates (union of planned + live in range)
+    all_dates = sorted(set(planned["_date"].tolist()) | set(live["_date"].tolist()))
+
+    matches = []
+    for _, p in planned.iterrows():
+        matched = live[
+            (live["Building"] == p["Building"]) &
+            (live["_date"]    == p["_date"])    &
+            (live["_slot"]    == p["_slot"])
+        ]
+        for _, l in matched.iterrows():
+            p_elec  = float(p["Electricity_Units"])
+            l_elec  = float(l["Electricity_Units"])
+            p_water = float(p["Water_Usage_Liters"])
+            l_water = float(l["Water_Usage_Liters"])
+            p_rooms = int(p["Rooms_Used"])
+            l_rooms = int(l["Rooms_Used"])
+
+            def diff_pct(plan, actual):
+                if plan == 0: return 0
+                return round(((actual - plan) / plan) * 100, 1)
+
+            def severity(pct):
+                if abs(pct) > 30: return "high"
+                if abs(pct) > 10: return "medium"
+                return "ok"
+
+            ed = diff_pct(p_elec,  l_elec)
+            wd = diff_pct(p_water, l_water)
+            rd = diff_pct(p_rooms, l_rooms)
+
+            matches.append({
+                "building":       p["Building"],
+                "date":           p["_date"],
+                "slot":           p["_slot"],
+                "planned_elec":   round(p_elec,  1),
+                "live_elec":      round(l_elec,  1),
+                "elec_diff_pct":  ed,
+                "elec_severity":  severity(ed),
+                "planned_water":  round(p_water, 1),
+                "live_water":     round(l_water, 1),
+                "water_diff_pct": wd,
+                "water_severity": severity(wd),
+                "planned_rooms":  p_rooms,
+                "live_rooms":     l_rooms,
+                "rooms_diff_pct": rd,
+                "rooms_severity": severity(rd),
+            })
+
+    blocks = ["A", "B", "C", "D"]
+    block_summary = {}
+    for b in blocks:
+        bm = [m for m in matches if m["building"] == b]
+        if bm:
+            block_summary[b] = {
+                "count":               len(bm),
+                "avg_elec_diff":       round(sum(m["elec_diff_pct"]  for m in bm) / len(bm), 1),
+                "avg_water_diff":      round(sum(m["water_diff_pct"] for m in bm) / len(bm), 1),
+                "avg_rooms_diff":      round(sum(m["rooms_diff_pct"] for m in bm) / len(bm), 1),
+                "total_planned_elec":  round(sum(m["planned_elec"]   for m in bm), 1),
+                "total_live_elec":     round(sum(m["live_elec"]      for m in bm), 1),
+                "total_planned_water": round(sum(m["planned_water"]  for m in bm), 1),
+                "total_live_water":    round(sum(m["live_water"]     for m in bm), 1),
+                "total_planned_rooms": sum(m["planned_rooms"] for m in bm),
+                "total_live_rooms":    sum(m["live_rooms"]    for m in bm),
+            }
+        else:
+            block_summary[b] = {"count": 0}
+
+    return jsonify({
+        "matches":       matches,
+        "block_summary": block_summary,
+        "total_matched": len(matches),
+        "available_dates": all_dates,
+        "date_from": date_from,
+        "date_to":   date_to,
+    })
+
+
 @app.route("/logout")
 def logout():
     session.clear()
@@ -426,6 +593,101 @@ def water_data():
         "building_usage":          {k: int(v) for k, v in water_per_building.items()},
         "daily_trend":             {str(k): int(v) for k, v in daily_water.items()},
         "insights":                insights,
+    })
+
+
+@app.route('/api/comparison')
+def comparison_data():
+    """
+    Returns planned vs live comparison per block for electricity, water, and rooms.
+    Each matched pair (same building + date + time_slot) becomes one comparison entry.
+    """
+    global data
+    planned = data[data["Data_Type"] == "planned"].copy()
+    live    = data[data["Data_Type"] == "live"].copy()
+
+    # normalise date to string YYYY-MM-DD
+    planned["_date"] = planned["Date"].astype(str).str[:10]
+    live["_date"]    = live["Date"].astype(str).str[:10]
+
+    # normalise time_slot to string (some rows saved as int like 1, 4)
+    planned["_slot"] = planned["Time_Slot"].astype(str).str.strip()
+    live["_slot"]    = live["Time_Slot"].astype(str).str.strip()
+
+    matches = []
+    for _, p in planned.iterrows():
+        matched = live[
+            (live["Building"] == p["Building"]) &
+            (live["_date"]    == p["_date"])    &
+            (live["_slot"]    == p["_slot"])
+        ]
+        for _, l in matched.iterrows():
+            p_elec  = float(p["Electricity_Units"])
+            l_elec  = float(l["Electricity_Units"])
+            p_water = float(p["Water_Usage_Liters"])
+            l_water = float(l["Water_Usage_Liters"])
+            p_rooms = int(p["Rooms_Used"])
+            l_rooms = int(l["Rooms_Used"])
+
+            def diff_pct(plan, actual):
+                if plan == 0: return 0
+                return round(((actual - plan) / plan) * 100, 1)
+
+            def severity(pct):
+                if abs(pct) > 30: return "high"
+                if abs(pct) > 10: return "medium"
+                return "ok"
+
+            elec_diff  = diff_pct(p_elec,  l_elec)
+            water_diff = diff_pct(p_water, l_water)
+            rooms_diff = diff_pct(p_rooms, l_rooms)
+
+            matches.append({
+                "building":      p["Building"],
+                "date":          p["_date"],
+                "slot":          p["_slot"],
+                # electricity
+                "planned_elec":  round(p_elec, 1),
+                "live_elec":     round(l_elec, 1),
+                "elec_diff_pct": elec_diff,
+                "elec_severity": severity(elec_diff),
+                # water
+                "planned_water": round(p_water, 1),
+                "live_water":    round(l_water, 1),
+                "water_diff_pct": water_diff,
+                "water_severity": severity(water_diff),
+                # rooms
+                "planned_rooms": p_rooms,
+                "live_rooms":    l_rooms,
+                "rooms_diff_pct": rooms_diff,
+                "rooms_severity": severity(rooms_diff),
+            })
+
+    # ── per-block aggregates for the summary cards ──
+    blocks = ["A", "B", "C", "D"]
+    block_summary = {}
+    for b in blocks:
+        bm = [m for m in matches if m["building"] == b]
+        if bm:
+            block_summary[b] = {
+                "count": len(bm),
+                "avg_elec_diff":  round(sum(m["elec_diff_pct"]  for m in bm) / len(bm), 1),
+                "avg_water_diff": round(sum(m["water_diff_pct"] for m in bm) / len(bm), 1),
+                "avg_rooms_diff": round(sum(m["rooms_diff_pct"] for m in bm) / len(bm), 1),
+                "total_planned_elec":  round(sum(m["planned_elec"]  for m in bm), 1),
+                "total_live_elec":     round(sum(m["live_elec"]     for m in bm), 1),
+                "total_planned_water": round(sum(m["planned_water"] for m in bm), 1),
+                "total_live_water":    round(sum(m["live_water"]    for m in bm), 1),
+                "total_planned_rooms": sum(m["planned_rooms"] for m in bm),
+                "total_live_rooms":    sum(m["live_rooms"]    for m in bm),
+            }
+        else:
+            block_summary[b] = {"count": 0}
+
+    return jsonify({
+        "matches":       matches,
+        "block_summary": block_summary,
+        "total_matched": len(matches),
     })
 
 
