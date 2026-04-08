@@ -1,6 +1,7 @@
-from flask import Flask, render_template, jsonify, request, redirect, url_for, session
+from flask import Flask, render_template, jsonify, request, redirect, url_for, session, send_file
 import pandas as pd
 import os
+from report_generator import generate_analysis_report
 
 app = Flask(__name__)
 app.secret_key = "smartcampus2025"
@@ -453,6 +454,40 @@ def analysis_api():
         "date_from": date_from,
         "date_to":   date_to,
     })
+
+
+@app.route("/api/download-report", methods=["POST"])
+def download_report():
+    """
+    Generate and download a comprehensive PDF report
+    """
+    if not session.get("logged_in"):
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    try:
+        req_data = request.get_json()
+        date_from = req_data.get('date_from')
+        date_to = req_data.get('date_to')
+        block = req_data.get('block', 'ALL')
+        analysis_data = req_data.get('data')
+        
+        if not date_from or not date_to:
+            return jsonify({"error": "Date range required"}), 400
+        
+        # Generate the PDF
+        pdf_buffer = generate_analysis_report(date_from, date_to, block, analysis_data)
+        
+        # Send the file
+        return send_file(
+            pdf_buffer,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=f'Smart_Campus_Analysis_{date_from}_to_{date_to}.pdf'
+        )
+    
+    except Exception as e:
+        print(f"Error generating report: {e}")
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/logout")

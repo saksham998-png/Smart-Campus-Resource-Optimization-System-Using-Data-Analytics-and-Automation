@@ -28,7 +28,10 @@
       border-radius: 10px; font-size: 0.88rem; font-weight: 600; cursor: pointer;
       font-family: 'DM Sans', sans-serif; transition: background 0.2s; align-self: flex-end;
     }
-    .filter-btn:hover { background: #2030b0; }
+    .filter-btn:hover:not(:disabled) { background: #2030b0; }
+    .filter-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .filter-btn.download-btn { background: var(--teal); }
+    .filter-btn.download-btn:hover:not(:disabled) { background: #156850; }
     .filter-reset {
       padding: 9px 16px; background: transparent; color: var(--muted); border: 1.5px solid var(--border);
       border-radius: 10px; font-size: 0.85rem; cursor: pointer; font-family: 'DM Sans', sans-serif;
@@ -39,6 +42,39 @@
       font-size: 0.78rem; padding: 5px 14px; border-radius: 20px; font-weight: 600;
       background: rgba(45,58,204,0.08); color: var(--indigo); border: 1px solid rgba(45,58,204,0.2);
       align-self: flex-end;
+    }
+
+    /* ── Selection Prompt ── */
+    .selection-prompt {
+      background: linear-gradient(135deg, rgba(45,58,204,0.05) 0%, rgba(26,128,96,0.05) 100%);
+      border: 2px dashed var(--border);
+      border-radius: 20px;
+      padding: 60px 40px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .prompt-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    .prompt-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    .prompt-text {
+      font-size: 0.95rem;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 600px;
+      margin: 0 auto;
     }
 
     /* ── Block tabs ── */
@@ -128,6 +164,9 @@
     .empty-state strong { display: block; font-family: 'Syne', sans-serif; font-size: 1rem; color: var(--muted); margin-bottom: 6px; }
     .empty-state p { font-size: 0.85rem; line-height: 1.6; }
     .empty-state a { color: var(--indigo); font-weight: 600; }
+    
+    .content-area { display: none; }
+    .content-area.visible { display: block; }
   </style>
 </head>
 <body>
@@ -156,73 +195,86 @@
       <input type="date" id="dateTo" class="filter-input">
     </div>
     <button class="filter-btn" onclick="applyFilter()">Apply Filter</button>
+    <button class="filter-btn download-btn" onclick="downloadReport()" id="downloadBtn" disabled>
+      📥 Download Report
+    </button>
     <button class="filter-reset" onclick="resetFilter()">Reset</button>
-    <div class="filter-result-tag" id="filterTag">All dates</div>
+    <div class="filter-result-tag" id="filterTag">Select date range</div>
   </div>
 
-  <!-- ── Block Tabs ── -->
-  <div class="block-tabs" id="blockTabs">
-    <div class="btab active" data-block="ALL" onclick="switchBlock('ALL')">
-      🏛️ All Blocks <span class="count-badge" id="cnt-ALL">0</span>
-    </div>
-    <div class="btab" data-block="A" onclick="switchBlock('A')">
-      Block A <span class="count-badge" id="cnt-A">0</span>
-    </div>
-    <div class="btab" data-block="B" onclick="switchBlock('B')">
-      Block B <span class="count-badge" id="cnt-B">0</span>
-    </div>
-    <div class="btab" data-block="C" onclick="switchBlock('C')">
-      Block C <span class="count-badge" id="cnt-C">0</span>
-    </div>
-    <div class="btab" data-block="D" onclick="switchBlock('D')">
-      Block D <span class="count-badge" id="cnt-D">0</span>
-    </div>
+  <!-- ── Selection Prompt ── -->
+  <div class="selection-prompt" id="selectionPrompt">
+    <div class="prompt-icon">📅</div>
+    <div class="prompt-title">Select Date Range to View Full Analysis</div>
+    <div class="prompt-text">Choose a start and end date above to generate detailed planned vs live comparison charts, insights, and comprehensive reports for your Smart Campus data.</div>
   </div>
 
-  <!-- ── Summary KPI Strip ── -->
-  <div class="cmp-kpi-row" id="kpiStrip"></div>
-
-  <!-- ── Comparison Charts ── -->
-  <div class="charts-grid-3">
-    <div class="chart-card">
-      <div class="chart-hdr">
-        <div class="chart-title">⚡ Electricity</div>
-        <span class="chart-tag tag-coral">Planned vs Live</span>
+  <!-- ── Content Area (hidden until filter applied) ── -->
+  <div class="content-area" id="contentArea">
+    <!-- ── Block Tabs ── -->
+    <div class="block-tabs" id="blockTabs">
+      <div class="btab active" data-block="ALL" onclick="switchBlock('ALL')">
+        🏛️ All Blocks <span class="count-badge" id="cnt-ALL">0</span>
       </div>
-      <canvas id="chartElec"></canvas>
-    </div>
-    <div class="chart-card">
-      <div class="chart-hdr">
-        <div class="chart-title">💧 Water</div>
-        <span class="chart-tag tag-teal">Planned vs Live</span>
+      <div class="btab" data-block="A" onclick="switchBlock('A')">
+        Block A <span class="count-badge" id="cnt-A">0</span>
       </div>
-      <canvas id="chartWater"></canvas>
-    </div>
-    <div class="chart-card">
-      <div class="chart-hdr">
-        <div class="chart-title">🏫 Rooms</div>
-        <span class="chart-tag tag-indigo">Planned vs Live</span>
+      <div class="btab" data-block="B" onclick="switchBlock('B')">
+        Block B <span class="count-badge" id="cnt-B">0</span>
       </div>
-      <canvas id="chartRooms"></canvas>
+      <div class="btab" data-block="C" onclick="switchBlock('C')">
+        Block C <span class="count-badge" id="cnt-C">0</span>
+      </div>
+      <div class="btab" data-block="D" onclick="switchBlock('D')">
+        Block D <span class="count-badge" id="cnt-D">0</span>
+      </div>
     </div>
-  </div>
 
-  <!-- ── Deviation Chart (full width) ── -->
-  <div class="chart-card" style="margin-bottom:22px">
-    <div class="chart-hdr">
-      <div class="chart-title">📈 Deviation % — Electricity · Water · Rooms</div>
-      <span class="chart-tag tag-amber">Δ% from Planned</span>
-    </div>
-    <canvas id="chartDev" class="tall"></canvas>
-  </div>
+    <!-- ── Summary KPI Strip ── -->
+    <div class="cmp-kpi-row" id="kpiStrip"></div>
 
-  <!-- ── Detail Table ── -->
-  <div class="table-card">
-    <div class="chart-hdr">
-      <div class="chart-title">🗂️ Matched Entry Details</div>
-      <span class="chart-tag tag-indigo" id="tableLabel">All Blocks</span>
+    <!-- ── Comparison Charts ── -->
+    <div class="charts-grid-3">
+      <div class="chart-card">
+        <div class="chart-hdr">
+          <div class="chart-title">⚡ Electricity</div>
+          <span class="chart-tag tag-coral">Planned vs Live</span>
+        </div>
+        <canvas id="chartElec"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-hdr">
+          <div class="chart-title">💧 Water</div>
+          <span class="chart-tag tag-teal">Planned vs Live</span>
+        </div>
+        <canvas id="chartWater"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-hdr">
+          <div class="chart-title">🏫 Rooms</div>
+          <span class="chart-tag tag-indigo">Planned vs Live</span>
+        </div>
+        <canvas id="chartRooms"></canvas>
+      </div>
     </div>
-    <div id="tableBody"></div>
+
+    <!-- ── Deviation Chart (full width) ── -->
+    <div class="chart-card" style="margin-bottom:22px">
+      <div class="chart-hdr">
+        <div class="chart-title">📈 Deviation % — Electricity · Water · Rooms</div>
+        <span class="chart-tag tag-amber">Δ% from Planned</span>
+      </div>
+      <canvas id="chartDev" class="tall"></canvas>
+    </div>
+
+    <!-- ── Detail Table ── -->
+    <div class="table-card">
+      <div class="chart-hdr">
+        <div class="chart-title">🗂️ Matched Entry Details</div>
+        <span class="chart-tag tag-indigo" id="tableLabel">All Blocks</span>
+      </div>
+      <div id="tableBody"></div>
+    </div>
   </div>
 
 </main>
@@ -251,6 +303,7 @@
   /* ── Global data ── */
   let currentData = null;
   let activeBlock = 'ALL';
+  let hasAppliedFilter = false;
 
   /* ── Chart base options ── */
   function baseOpts(yCallback) {
@@ -287,20 +340,86 @@
   function applyFilter() {
     const f = document.getElementById('dateFrom').value;
     const t = document.getElementById('dateTo').value;
-    const tag = document.getElementById('filterTag');
-    if (f || t) {
-      tag.textContent = (f || '…') + ' → ' + (t || '…');
-    } else {
-      tag.textContent = 'All dates';
+    
+    if (!f || !t) {
+      alert('Please select both start and end dates');
+      return;
     }
+    
+    const tag = document.getElementById('filterTag');
+    tag.textContent = f + ' → ' + t;
+    
+    hasAppliedFilter = true;
+    document.getElementById('selectionPrompt').style.display = 'none';
+    document.getElementById('contentArea').classList.add('visible');
+    document.getElementById('downloadBtn').disabled = false;
+    
     loadData();
   }
 
   function resetFilter() {
     document.getElementById('dateFrom').value = '';
     document.getElementById('dateTo').value   = '';
-    document.getElementById('filterTag').textContent = 'All dates';
-    loadData();
+    document.getElementById('filterTag').textContent = 'Select date range';
+    document.getElementById('downloadBtn').disabled = true;
+    
+    hasAppliedFilter = false;
+    document.getElementById('selectionPrompt').style.display = 'block';
+    document.getElementById('contentArea').classList.remove('visible');
+    destroyCharts();
+  }
+
+  /* ─────────────────────────────────────────
+     DOWNLOAD REPORT
+  ───────────────────────────────────────── */
+  async function downloadReport() {
+    if (!currentData || !hasAppliedFilter) {
+      alert('Please apply a date filter first');
+      return;
+    }
+    
+    const f = document.getElementById('dateFrom').value;
+    const t = document.getElementById('dateTo').value;
+    
+    const btn = document.getElementById('downloadBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '⏳ Generating...';
+    btn.disabled = true;
+    
+    try {
+      const response = await fetch('/api/download-report', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          date_from: f,
+          date_to: t,
+          block: activeBlock,
+          data: currentData
+        })
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Smart_Campus_Analysis_${f}_to_${t}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        alert('Error generating report');
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('Error downloading report');
+    } finally {
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    }
   }
 
   /* ─────────────────────────────────────────
@@ -533,7 +652,6 @@
   window.addEventListener('DOMContentLoaded', () => {
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('mainContent').style.display  = 'block';
-    loadData();
   });
 </script>
 </body>
