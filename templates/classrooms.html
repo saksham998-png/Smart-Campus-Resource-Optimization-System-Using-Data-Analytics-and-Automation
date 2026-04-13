@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Campus — Classrooms</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+{% include 'sidebar.html' %}
+
+<main class="main" id="mainContent" style="display:none">
+  <div class="topbar">
+    <div>
+      <div class="page-title" id="pageTitle">Classrooms Analytics</div>
+      <div class="page-sub">Classroom utilization analytics for this building</div>
+    </div>
+    <div class="live-badge"><div class="live-dot"></div> Live Data</div>
+  </div>
+
+  <div class="section-label">Campus overview</div>
+  <div class="kpi-grid">
+    <div class="kpi-card c-indigo"><div class="kpi-icon">📊</div><div class="kpi-label">Avg Utilization</div><div class="kpi-value" id="ovAvgUtil">—</div><div class="kpi-sub">all buildings</div></div>
+    <div class="kpi-card c-coral"><div class="kpi-icon">🏆</div><div class="kpi-label">Most Occupied</div><div class="kpi-value" id="ovMostOcc">—</div><div class="kpi-sub">highest occupancy</div></div>
+    <div class="kpi-card c-amber"><div class="kpi-icon">📉</div><div class="kpi-label">Least Occupied</div><div class="kpi-value" id="ovLeastOcc">—</div><div class="kpi-sub">lowest occupancy</div></div>
+    <div class="kpi-card c-teal"><div class="kpi-icon">🏫</div><div class="kpi-label">Total Rooms</div><div class="kpi-value" id="ovTotalRooms">48</div><div class="kpi-sub">across campus</div></div>
+  </div>
+
+  <div class="block-divider">
+    <div class="block-divider-line"></div>
+    <div class="block-divider-label" id="blockLabel">🏫 Block A Detail</div>
+    <div class="block-divider-line"></div>
+  </div>
+
+  <div class="det-kpi-grid">
+    <div class="det-kpi indigo"><div class="dl">Avg Occupancy</div><div class="dv" id="detUtil">—</div><div class="ds">utilization rate</div></div>
+    <div class="det-kpi teal"><div class="dl">Total Rooms</div><div class="dv" id="detRooms">12</div><div class="ds">in this block</div></div>
+    <div class="det-kpi amber"><div class="dl">Peak Hour</div><div class="dv" id="detPeak">—</div><div class="ds">busiest slot</div></div>
+    <div class="det-kpi coral"><div class="dl">Idle Rooms</div><div class="dv" id="detIdle">—</div><div class="ds">underutilized</div></div>
+  </div>
+
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-hdr"><div class="chart-title">🕐 Hourly Occupancy</div><span class="chart-tag tag-indigo">% Occupied</span></div>
+      <canvas id="blockHourChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-hdr"><div class="chart-title">📈 Weekly Trend</div><span class="chart-tag tag-indigo">% Utilization</span></div>
+      <canvas id="blockLineChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-hdr"><div class="chart-title">🏢 vs Campus Average</div><span class="chart-tag tag-coral">Comparison</span></div>
+      <canvas id="blockCompareChart"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-hdr"><div class="chart-title">📅 Daily Pattern</div><span class="chart-tag tag-amber">Mon–Fri</span></div>
+      <canvas id="blockDayChart"></canvas>
+    </div>
+  </div>
+</main>
+
+<div id="loadingState" style="margin-left:250px">
+  <div class="spinner"></div>
+  <div style="color:#4a8070;font-size:0.82rem">Loading classroom data…</div>
+</div>
+
+<script>
+  const C = { indigo:'#2d3acc', coral:'#e8441a', teal:'#1a8060', amber:'#f0b800' };
+
+  const BLOCK_DATA = {
+    A: { util:76.1, rooms:12, idle:2, peak:'10–11 AM', hourly:[38,55,82,91,78,65,70,60,45,30], weekly:[72,74,76,77], daily:[70,80,82,76,68] },
+    B: { util:77.4, rooms:12, idle:1, peak:'10–11 AM', hourly:[42,60,88,93,80,70,74,62,48,32], weekly:[74,75,78,80], daily:[72,82,85,78,70] },
+    C: { util:61.8, rooms:12, idle:4, peak:'11–12 PM', hourly:[28,40,62,78,70,58,55,48,35,22], weekly:[58,60,63,67], daily:[60,66,68,62,55] },
+    D: { util:60.2, rooms:12, idle:4, peak:'11–12 PM', hourly:[25,38,60,75,68,55,52,44,32,20], weekly:[56,58,61,65], daily:[58,64,66,60,52] },
+  };
+
+  let charts = {};
+
+  function destroyCharts() { Object.values(charts).forEach(c=>c&&c.destroy()); charts={}; }
+
+  const baseOpts = () => ({
+    responsive:true,
+    plugins:{ legend:{display:false}, tooltip:{ backgroundColor:'#fff', borderColor:'#c8e8de', borderWidth:1, padding:10, cornerRadius:8, titleColor:'#0f2d25', bodyColor:'#4a8070', titleFont:{family:'DM Sans'}, bodyFont:{family:'DM Sans'} } },
+    scales:{ x:{grid:{color:'rgba(26,128,96,0.06)'},ticks:{color:'#4a8070',font:{family:'DM Sans',size:11}}}, y:{grid:{color:'rgba(26,128,96,0.06)'},ticks:{color:'#4a8070',font:{family:'DM Sans',size:11}}} }
+  });
+
+  function grad(ctx, hex) {
+    const g = ctx.createLinearGradient(0,0,0,220);
+    g.addColorStop(0,hex+'bb'); g.addColorStop(1,hex+'11'); return g;
+  }
+
+  /* ── Sidebar toggle — each section independent ── */
+  function toggleSection(section) {
+    const subnav = document.getElementById('subnav-'+section);
+    const chev   = document.getElementById('chev-'+section);
+    subnav.classList.toggle('hidden');
+    chev.style.transform = subnav.classList.contains('hidden') ? 'rotate(-90deg)' : '';
+  }
+
+  function switchBlock(block) {
+    document.querySelectorAll('#subnav-rooms .block-item').forEach(el => {
+      el.classList.toggle('active-rooms', el.dataset.block === block);
+    });
+    document.getElementById('pageTitle').textContent  = `Block ${block}`;
+    document.getElementById('blockLabel').textContent = `🏫 Block ${block} Detail`;
+    renderBlockDetail(block);
+  }
+
+  function renderBlockDetail(block) {
+    const bd = BLOCK_DATA[block];
+    const campusAvg = (Object.values(BLOCK_DATA).reduce((a,b)=>a+b.util,0)/4).toFixed(1);
+    const mostOcc   = Object.entries(BLOCK_DATA).sort((a,b)=>b[1].util-a[1].util)[0][0];
+    const leastOcc  = Object.entries(BLOCK_DATA).sort((a,b)=>a[1].util-b[1].util)[0][0];
+
+    document.getElementById('ovAvgUtil').textContent  = campusAvg+'%';
+    document.getElementById('ovMostOcc').textContent  = 'Block '+mostOcc;
+    document.getElementById('ovLeastOcc').textContent = 'Block '+leastOcc;
+    document.getElementById('detUtil').textContent    = bd.util+'%';
+    document.getElementById('detRooms').textContent   = bd.rooms;
+    document.getElementById('detPeak').textContent    = bd.peak;
+    document.getElementById('detIdle').textContent    = bd.idle;
+
+    destroyCharts();
+    const hours = ['8AM','9AM','10AM','11AM','12PM','1PM','2PM','3PM','4PM','5PM'];
+    const weeks = ['Week 1','Week 2','Week 3','Week 4'];
+    const days  = ['Mon','Tue','Wed','Thu','Fri'];
+
+    const hc = document.getElementById('blockHourChart').getContext('2d');
+    charts.hour = new Chart(hc,{type:'bar',data:{labels:hours,datasets:[{data:bd.hourly,backgroundColor:grad(hc,C.indigo),borderColor:C.indigo,borderWidth:2,borderRadius:6}]},options:baseOpts()});
+
+    const lc = document.getElementById('blockLineChart').getContext('2d');
+    charts.line = new Chart(lc,{type:'line',data:{labels:weeks,datasets:[{data:bd.weekly,borderColor:C.indigo,backgroundColor:grad(lc,C.indigo),borderWidth:2.5,pointBackgroundColor:C.indigo,pointRadius:5,tension:0.4,fill:true}]},options:baseOpts()});
+
+    const allUtils = Object.entries(BLOCK_DATA).map(([b,v])=>({b,v:v.util}));
+    const cc = document.getElementById('blockCompareChart').getContext('2d');
+    charts.compare = new Chart(cc,{type:'bar',data:{labels:allUtils.map(x=>`Block ${x.b}`),datasets:[{data:allUtils.map(x=>x.v),backgroundColor:allUtils.map(x=>x.b===block?C.indigo+'cc':'rgba(45,58,204,0.18)'),borderColor:allUtils.map(x=>x.b===block?C.indigo:'#c8e8de'),borderWidth:2,borderRadius:8}]},options:baseOpts()});
+
+    const dc = document.getElementById('blockDayChart').getContext('2d');
+    charts.day = new Chart(dc,{type:'line',data:{labels:days,datasets:[{data:bd.daily,borderColor:C.amber,backgroundColor:grad(dc,C.amber),borderWidth:2.5,pointBackgroundColor:C.amber,pointRadius:5,tension:0.4,fill:true}]},options:baseOpts()});
+  }
+
+  fetch('/api/data')
+    .then(r=>r.json())
+    .then(d=>{
+      document.getElementById('loadingState').style.display='none';
+      document.getElementById('mainContent').style.display='block';
+
+      if(d.buildings && d.utilization){
+        d.buildings.forEach((b,i)=>{ if(BLOCK_DATA[b]) BLOCK_DATA[b].util=+d.utilization[i].toFixed(1); });
+      }
+
+      /* Auto-load block from URL param (?block=A), else default to A */
+      const urlBlock = new URLSearchParams(window.location.search).get('block');
+      switchBlock(urlBlock && BLOCK_DATA[urlBlock] ? urlBlock : 'A');
+    })
+    .catch(()=>{
+      document.getElementById('loadingState').style.display='none';
+      document.getElementById('mainContent').style.display='block';
+      const urlBlock = new URLSearchParams(window.location.search).get('block');
+      switchBlock(urlBlock && BLOCK_DATA[urlBlock] ? urlBlock : 'A');
+    });
+</script>
+</body>
+</html>

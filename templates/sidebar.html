@@ -1,0 +1,91 @@
+<aside class="sidebar">
+  <div class="brand">
+    <div class="brand-icon">🏛️</div>
+    <div class="brand-name">SmartCampus<span>Admin Panel</span></div>
+  </div>
+
+  <div class="nav-label">Analytics</div>
+
+  <!-- Dashboard -->
+  <a href="/dashboard" class="nav-item {% if active == 'dashboard' %}active{% endif %}">
+    📊 Dashboard
+  </a>
+
+  <!-- Electricity -->
+  <div class="nav-parent elec {% if active == 'electricity' %}active{% endif %}" onclick="toggleSection('elec')">
+    ⚡ Electricity <span class="chev" id="chev-elec">▾</span>
+  </div>
+  <div class="block-subnav {% if active != 'electricity' %}hidden{% endif %}" id="subnav-elec">
+    <a href="/electricity?block=A" class="block-item">Block A</a>
+    <a href="/electricity?block=B" class="block-item">Block B</a>
+    <a href="/electricity?block=C" class="block-item">Block C</a>
+    <a href="/electricity?block=D" class="block-item">Block D</a>
+  </div>
+
+  <!-- Water -->
+  <div class="nav-parent water {% if active == 'water' %}active{% endif %}" onclick="toggleSection('water')">
+    💧 Water <span class="chev" id="chev-water">▾</span>
+  </div>
+  <div class="block-subnav {% if active != 'water' %}hidden{% endif %}" id="subnav-water">
+    <a href="/water?block=A" class="block-item">Block A</a>
+    <a href="/water?block=B" class="block-item">Block B</a>
+    <a href="/water?block=C" class="block-item">Block C</a>
+    <a href="/water?block=D" class="block-item">Block D</a>
+  </div>
+
+  <!-- Classrooms -->
+  <div class="nav-parent rooms {% if active == 'classrooms' %}active{% endif %}" onclick="toggleSection('rooms')">
+    🏫 Classrooms <span class="chev" id="chev-rooms">▾</span>
+  </div>
+  <div class="block-subnav {% if active != 'classrooms' %}hidden{% endif %}" id="subnav-rooms">
+    <a href="/classrooms?block=A" class="block-item">Block A</a>
+    <a href="/classrooms?block=B" class="block-item">Block B</a>
+    <a href="/classrooms?block=C" class="block-item">Block C</a>
+    <a href="/classrooms?block=D" class="block-item">Block D</a>
+  </div>
+
+  <!-- Entries -->
+  <a href="/planned-entry" class="nav-item {% if active == 'planned' %}active{% endif %}">
+    📅 Planned Entry
+  </a>
+  <a href="/live-entry" class="nav-item {% if active == 'live' %}active{% endif %}">
+    ⚡ Live Entry
+  </a>
+
+  <!-- Calendar -->
+   <a href="/calendar" class="nav-item {% if active == 'calendar' %}active{% endif %}">
+    🗓️ Calendar
+  </a>
+
+  <!-- Analysis -->
+  <a href="/analysis" class="nav-item {% if active == 'analysis' %}active{% endif %}">
+    📊 Analysis
+  </a>
+
+  <div class="sidebar-footer">
+    <a href="/logout" class="logout-btn">🚪 Logout</a>
+  </div>
+</aside>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+  window.toggleSection = function(section) {
+    const subnav = document.getElementById("subnav-" + section);
+    const chev = document.getElementById("chev-" + section);
+
+    if (!subnav || !chev) return;
+
+    const isOpen = subnav.classList.contains("open");
+
+    if (isOpen) {
+      subnav.classList.remove("open");
+      chev.style.transform = "rotate(-90deg)";
+    } else {
+      subnav.classList.add("open");
+      chev.style.transform = "rotate(0deg)";
+    }
+  };
+
+});
+</script>

@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Campus — Analysis</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    /* ── Date filter bar ── */
+    .filter-bar {
+      background: var(--surf); border: 1.5px solid var(--border); border-radius: 16px;
+      padding: 18px 22px; margin-bottom: 24px;
+      display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap;
+      box-shadow: 0 2px 8px rgba(26,128,96,0.05);
+    }
+    .filter-group { display: flex; flex-direction: column; gap: 5px; }
+    .filter-group label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; }
+    .filter-input {
+      padding: 8px 14px; border: 1.5px solid var(--border); border-radius: 10px;
+      font-family: 'DM Sans', sans-serif; font-size: 0.88rem; color: var(--text);
+      background: var(--bg); outline: none; transition: border-color 0.2s;
+    }
+    .filter-input:focus { border-color: var(--indigo); }
+    .filter-btn {
+      padding: 9px 22px; background: var(--indigo); color: white; border: none;
+      border-radius: 10px; font-size: 0.88rem; font-weight: 600; cursor: pointer;
+      font-family: 'DM Sans', sans-serif; transition: background 0.2s; align-self: flex-end;
+    }
+    .filter-btn:hover:not(:disabled) { background: #2030b0; }
+    .filter-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .filter-btn.download-btn { background: var(--teal); }
+    .filter-btn.download-btn:hover:not(:disabled) { background: #156850; }
+    .filter-reset {
+      padding: 9px 16px; background: transparent; color: var(--muted); border: 1.5px solid var(--border);
+      border-radius: 10px; font-size: 0.85rem; cursor: pointer; font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s; align-self: flex-end;
+    }
+    .filter-reset:hover { background: var(--surf2); color: var(--text); }
+    .filter-result-tag {
+      font-size: 0.78rem; padding: 5px 14px; border-radius: 20px; font-weight: 600;
+      background: rgba(45,58,204,0.08); color: var(--indigo); border: 1px solid rgba(45,58,204,0.2);
+      align-self: flex-end;
+    }
+
+    /* ── Selection Prompt ── */
+    .selection-prompt {
+      background: linear-gradient(135deg, rgba(45,58,204,0.05) 0%, rgba(26,128,96,0.05) 100%);
+      border: 2px dashed var(--border);
+      border-radius: 20px;
+      padding: 60px 40px;
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .prompt-icon {
+      font-size: 64px;
+      margin-bottom: 20px;
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+    .prompt-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    .prompt-text {
+      font-size: 0.95rem;
+      color: var(--muted);
+      line-height: 1.6;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* ── Block tabs ── */
+    .block-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 22px; }
+    .btab {
+      padding: 7px 22px; border-radius: 20px; font-size: 0.82rem; font-weight: 600;
+      cursor: pointer; border: 1.5px solid var(--border); background: var(--surf);
+      color: var(--muted); transition: all 0.2s; font-family: 'DM Sans', sans-serif;
+    }
+    .btab.active { background: var(--indigo); border-color: var(--indigo); color: #fff; }
+    .btab:hover:not(.active) { background: var(--surf2); }
+    .btab .count-badge {
+      display: inline-block; margin-left: 6px; padding: 1px 7px;
+      border-radius: 10px; font-size: 0.68rem;
+      background: rgba(255,255,255,0.3); 
+    }
+    .btab:not(.active) .count-badge { background: rgba(26,128,96,0.1); color: var(--teal); }
+
+    /* ── Summary KPI strip ── */
+    .cmp-kpi-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 22px; }
+    .cmp-kpi {
+      background: var(--surf); border: 1.5px solid var(--border); border-radius: 14px;
+      padding: 18px 20px; box-shadow: 0 2px 8px rgba(26,128,96,0.05);
+    }
+    .cmp-kpi-icon  { font-size: 20px; margin-bottom: 8px; }
+    .cmp-kpi-label { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 10px; }
+    .cmp-row { display: flex; gap: 10px; margin-bottom: 8px; }
+    .cmp-col { flex: 1; }
+    .cmp-col-label { font-size: 0.65rem; color: var(--muted2); margin-bottom: 3px; }
+    .cmp-col-val { font-family: 'Syne', sans-serif; font-size: 1.1rem; font-weight: 700; color: var(--text); }
+    .cmp-track { height: 7px; background: var(--surf2); border-radius: 10px; overflow: hidden; margin-top: 4px; }
+    .cmp-fill { height: 100%; border-radius: 10px; transition: width 0.6s ease; }
+    .fill-planned { background: rgba(45,58,204,0.45); }
+    .fill-live-e  { background: var(--coral); }
+    .fill-live-w  { background: var(--teal); }
+    .fill-live-r  { background: var(--indigo); }
+    .diff-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; margin-top: 8px;
+    }
+    .d-over  { background: rgba(232,68,26,0.1);  color: var(--coral); }
+    .d-under { background: rgba(26,128,96,0.1);  color: var(--teal); }
+    .d-ok    { background: rgba(26,128,96,0.07); color: var(--muted2); }
+
+    /* ── Charts grid ── */
+    .charts-grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; margin-bottom: 22px; }
+    .chart-card { background: var(--surf); border: 1.5px solid var(--border); border-radius: 18px; padding: 20px; box-shadow: 0 2px 8px rgba(26,128,96,0.06); }
+    .chart-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .chart-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.92rem; color: var(--text); }
+    .chart-tag { font-size: 0.68rem; padding: 3px 10px; border-radius: 20px; font-weight: 500; }
+    .tag-coral  { background: rgba(232,68,26,0.1);  color: var(--coral); }
+    .tag-indigo { background: rgba(45,58,204,0.1);  color: var(--indigo); }
+    .tag-teal   { background: rgba(26,128,96,0.1);  color: var(--teal); }
+    .tag-amber  { background: rgba(240,184,0,0.12); color: #8a6800; }
+    canvas { max-height: 220px; }
+
+    /* Deviation full-width chart */
+    .chart-card.full-w { grid-column: 1 / -1; }
+    canvas.tall { max-height: 260px; }
+
+    /* ── Match table ── */
+    .table-card {
+      background: var(--surf); border: 1.5px solid var(--border); border-radius: 18px;
+      padding: 22px; margin-bottom: 24px; box-shadow: 0 2px 8px rgba(26,128,96,0.06);
+    }
+    .match-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; margin-top: 14px; }
+    .match-table th {
+      text-align: left; padding: 8px 12px; font-size: 0.66rem; text-transform: uppercase;
+      letter-spacing: 0.07em; color: var(--muted2); border-bottom: 1.5px solid var(--border); font-weight: 600;
+    }
+    .match-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--muted); vertical-align: middle; }
+    .match-table tr:last-child td { border-bottom: none; }
+    .match-table tr:hover td { background: var(--surf2); }
+    .pill {
+      display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 20px;
+      font-size: 0.72rem; font-weight: 700;
+    }
+    .pill-ok     { background: rgba(26,128,96,0.1);  color: var(--teal); }
+    .pill-medium { background: rgba(240,184,0,0.12); color: #8a6800; }
+    .pill-high   { background: rgba(212,58,26,0.1);  color: var(--red); }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center; padding: 48px 20px; color: var(--muted2);
+    }
+    .empty-state .emoji { font-size: 40px; margin-bottom: 12px; }
+    .empty-state strong { display: block; font-family: 'Syne', sans-serif; font-size: 1rem; color: var(--muted); margin-bottom: 6px; }
+    .empty-state p { font-size: 0.85rem; line-height: 1.6; }
+    .empty-state a { color: var(--indigo); font-weight: 600; }
+    
+    .content-area { display: none; }
+    .content-area.visible { display: block; }
+  </style>
+</head>
+<body>
+
+{% include 'sidebar.html' %}
+
+<main class="main" id="mainContent" style="display:none">
+
+  <!-- ── Topbar ── -->
+  <div class="topbar">
+    <div>
+      <div class="page-title">Planned vs Live Analysis</div>
+      <div class="page-sub">Compare resource allocation vs actual usage — filter by date range &amp; block</div>
+    </div>
+    <div class="live-badge"><div class="live-dot"></div> Live Data</div>
+  </div>
+
+  <!-- ── Date Filter Bar ── -->
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>From Date</label>
+      <input type="date" id="dateFrom" class="filter-input">
+    </div>
+    <div class="filter-group">
+      <label>To Date</label>
+      <input type="date" id="dateTo" class="filter-input">
+    </div>
+    <button class="filter-btn" onclick="applyFilter()">Apply Filter</button>
+    <button class="filter-btn download-btn" onclick="downloadReport()" id="downloadBtn" disabled>
+      📥 Download Report
+    </button>
+    <button class="filter-reset" onclick="resetFilter()">Reset</button>
+    <div class="filter-result-tag" id="filterTag">Select date range</div>
+  </div>
+
+  <!-- ── Selection Prompt ── -->
+  <div class="selection-prompt" id="selectionPrompt">
+    <div class="prompt-icon">📅</div>
+    <div class="prompt-title">Select Date Range to View Full Analysis</div>
+    <div class="prompt-text">Choose a start and end date above to generate detailed planned vs live comparison charts, insights, and comprehensive reports for your Smart Campus data.</div>
+  </div>
+
+  <!-- ── Content Area (hidden until filter applied) ── -->
+  <div class="content-area" id="contentArea">
+    <!-- ── Block Tabs ── -->
+    <div class="block-tabs" id="blockTabs">
+      <div class="btab active" data-block="ALL" onclick="switchBlock('ALL')">
+        🏛️ All Blocks <span class="count-badge" id="cnt-ALL">0</span>
+      </div>
+      <div class="btab" data-block="A" onclick="switchBlock('A')">
+        Block A <span class="count-badge" id="cnt-A">0</span>
+      </div>
+      <div class="btab" data-block="B" onclick="switchBlock('B')">
+        Block B <span class="count-badge" id="cnt-B">0</span>
+      </div>
+      <div class="btab" data-block="C" onclick="switchBlock('C')">
+        Block C <span class="count-badge" id="cnt-C">0</span>
+      </div>
+      <div class="btab" data-block="D" onclick="switchBlock('D')">
+        Block D <span class="count-badge" id="cnt-D">0</span>
+      </div>
+    </div>
+
+    <!-- ── Summary KPI Strip ── -->
+    <div class="cmp-kpi-row" id="kpiStrip"></div>
+
+    <!-- ── Comparison Charts ── -->
+    <div class="charts-grid-3">
+      <div class="chart-card">
+        <div class="chart-hdr">
+          <div class="chart-title">⚡ Electricity</div>
+          <span class="chart-tag tag-coral">Planned vs Live</span>
+        </div>
+        <canvas id="chartElec"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-hdr">
+          <div class="chart-title">💧 Water</div>
+          <span class="chart-tag tag-teal">Planned vs Live</span>
+        </div>
+        <canvas id="chartWater"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-hdr">
+          <div class="chart-title">🏫 Rooms</div>
+          <span class="chart-tag tag-indigo">Planned vs Live</span>
+        </div>
+        <canvas id="chartRooms"></canvas>
+      </div>
+    </div>
+
+    <!-- ── Deviation Chart (full width) ── -->
+    <div class="chart-card" style="margin-bottom:22px">
+      <div class="chart-hdr">
+        <div class="chart-title">📈 Deviation % — Electricity · Water · Rooms</div>
+        <span class="chart-tag tag-amber">Δ% from Planned</span>
+      </div>
+      <canvas id="chartDev" class="tall"></canvas>
+    </div>
+
+    <!-- ── Detail Table ── -->
+    <div class="table-card">
+      <div class="chart-hdr">
+        <div class="chart-title">🗂️ Matched Entry Details</div>
+        <span class="chart-tag tag-indigo" id="tableLabel">All Blocks</span>
+      </div>
+      <div id="tableBody"></div>
+    </div>
+  </div>
+
+</main>
+
+<div id="loadingState" style="margin-left:250px">
+  <div class="spinner"></div>
+  <div style="color:#4a8070;font-size:0.82rem">Loading analysis…</div>
+</div>
+
+<script>
+  const C = { coral:'#e8441a', indigo:'#2d3acc', teal:'#1a8060', amber:'#f0b800', red:'#d43a1a' };
+
+  function toggleSection(section) {
+    const subnav = document.getElementById('subnav-'+section);
+    const chev   = document.getElementById('chev-'+section);
+    subnav.classList.toggle('hidden');
+    chev.style.transform = subnav.classList.contains('hidden') ? 'rotate(-90deg)' : '';
+  }
+
+  const fmt = n => Number(Math.round(n)).toLocaleString();
+
+  /* ── Chart instances ── */
+  let charts = {};
+  function destroyCharts() { Object.values(charts).forEach(c => c && c.destroy()); charts = {}; }
+
+  /* ── Global data ── */
+  let currentData = null;
+  let activeBlock = 'ALL';
+  let hasAppliedFilter = false;
+
+  /* ── Chart base options ── */
+  function baseOpts(yCallback) {
+    return {
+      responsive: true,
+      plugins: {
+        legend: {
+          display: true, position: 'top',
+          labels: { color:'#4a8070', font:{family:'DM Sans',size:11}, boxWidth:10, padding:12 }
+        },
+        tooltip: { backgroundColor:'#fff', borderColor:'#c8e8de', borderWidth:1, padding:10, cornerRadius:8, titleColor:'#0f2d25', bodyColor:'#4a8070', titleFont:{family:'DM Sans'}, bodyFont:{family:'DM Sans'} }
+      },
+      scales: {
+        x: { grid:{color:'rgba(26,128,96,0.06)'}, ticks:{color:'#4a8070', font:{family:'DM Sans',size:11}, maxRotation:30} },
+        y: { grid:{color:'rgba(26,128,96,0.06)'}, ticks:{color:'#4a8070', font:{family:'DM Sans',size:11}, ...(yCallback ? {callback:yCallback} : {})} }
+      }
+    };
+  }
+
+  /* ─────────────────────────────────────────
+     FILTER
+  ───────────────────────────────────────── */
+  function buildUrl() {
+    const f = document.getElementById('dateFrom').value;
+    const t = document.getElementById('dateTo').value;
+    let url = '/api/analysis';
+    const params = [];
+    if (f) params.push('date_from=' + f);
+    if (t) params.push('date_to='   + t);
+    if (params.length) url += '?' + params.join('&');
+    return url;
+  }
+
+  function applyFilter() {
+    const f = document.getElementById('dateFrom').value;
+    const t = document.getElementById('dateTo').value;
+    
+    if (!f || !t) {
+      alert('Please select both start and end dates');
+      return;
+    }
+    
+    const tag = document.getElementById('filterTag');
+    tag.textContent = f + ' → ' + t;
+    
+    hasAppliedFilter = true;
+    document.getElementById('selectionPrompt').style.display = 'none';
+    document.getElementById('contentArea').classList.add('visible');
+    document.getElementById('downloadBtn').disabled = false;
+    
+    loadData();
+  }
+
+  function resetFilter() {
+    document.getElementById('dateFrom').value = '';
+    document.getElementById('dateTo').value   = '';
+    document.getElementById('filterTag').textContent = 'Select date range';
+    document.getElementById('downloadBtn').disabled = true;
+    
+    hasAppliedFilter = false;
+    document.getElementById('selectionPrompt').style.display = 'block';
+    document.getElementById('contentArea').classList.remove('visible');
+    destroyCharts();
+  }
+
+  /* ─────────────────────────────────────────
+     DOWNLOAD REPORT
+  ───────────────────────────────────────── */
+  async function downloadReport() {
+    if (!currentData || !hasAppliedFilter) {
+      alert('Please apply a date filter first');
+      return;
+    }
+    
+    const f = document.getElementById('dateFrom').value;
+    const t = document.getElementById('dateTo').value;
+    
+    const btn = document.getElementById('downloadBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '⏳ Generating...';
+    btn.disabled = true;
+    
+    try {
+      const response = await fetch('/api/download-report', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          date_from: f,
+          date_to: t,
+          block: activeBlock,
+          data: currentData
+        })
+      });
+      
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Smart_Campus_Analysis_${f}_to_${t}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } else {
+        alert('Error generating report');
+      }
+    } catch (error) {
+      console.error('Download error:', error);
+      alert('Error downloading report');
+    } finally {
+      btn.innerHTML = originalText;
+      btn.disabled = false;
+    }
+  }
+
+  /* ─────────────────────────────────────────
+     LOAD
+  ───────────────────────────────────────── */
+  function loadData() {
+    fetch(buildUrl())
+      .then(r => r.json())
+      .then(d => {
+        currentData = d;
+        /* update tab count badges */
+        const blocks = ['A','B','C','D'];
+        const allCount = d.matches.length;
+        document.getElementById('cnt-ALL').textContent = allCount;
+        blocks.forEach(b => {
+          const n = d.matches.filter(m => m.building === b).length;
+          document.getElementById('cnt-' + b).textContent = n;
+        });
+        renderBlock(activeBlock);
+      })
+      .catch(err => console.error('Analysis fetch error', err));
+  }
+
+  /* ─────────────────────────────────────────
+     BLOCK SWITCH
+  ───────────────────────────────────────── */
+  function switchBlock(block) {
+    activeBlock = block;
+    document.querySelectorAll('.btab').forEach(t => t.classList.toggle('active', t.dataset.block === block));
+    document.getElementById('tableLabel').textContent = block === 'ALL' ? 'All Blocks' : 'Block ' + block;
+    if (currentData) renderBlock(block);
+  }
+
+  /* ─────────────────────────────────────────
+     RENDER
+  ───────────────────────────────────────── */
+  function renderBlock(block) {
+    const d        = currentData;
+    const matches  = block === 'ALL' ? d.matches : d.matches.filter(m => m.building === block);
+    const summary  = d.block_summary;
+    const blocks   = ['A','B','C','D'].filter(b => summary[b] && summary[b].count > 0);
+
+    destroyCharts();
+
+    /* ── Empty state ── */
+    if (matches.length === 0) {
+      document.getElementById('kpiStrip').innerHTML = `
+        <div style="grid-column:1/-1">
+          <div class="empty-state">
+            <div class="emoji">📭</div>
+            <strong>No matched entries ${block === 'ALL' ? '' : 'for Block ' + block}</strong>
+            <p>A match requires a <a href="/planned-entry">Planned Entry</a> and a
+            <a href="/live-entry">Live Entry</a> for the <em>same block, date, and time slot</em>.</p>
+          </div>
+        </div>`;
+      renderEmptyCharts();
+      renderTable([]);
+      return;
+    }
+
+    /* ── KPI strip ── */
+    const totPE = matches.reduce((a,m) => a + m.planned_elec,  0);
+    const totLE = matches.reduce((a,m) => a + m.live_elec,     0);
+    const totPW = matches.reduce((a,m) => a + m.planned_water, 0);
+    const totLW = matches.reduce((a,m) => a + m.live_water,    0);
+    const totPR = matches.reduce((a,m) => a + m.planned_rooms, 0);
+    const totLR = matches.reduce((a,m) => a + m.live_rooms,    0);
+
+    function diffPct(p, l) { return p === 0 ? 0 : +( ((l-p)/p)*100 ).toFixed(1); }
+    function diffBadge(pct) {
+      const sign = pct > 0 ? '+' : '';
+      const cls  = pct > 5 ? 'd-over' : pct < -5 ? 'd-under' : 'd-ok';
+      const label = pct > 5 ? '↑ Over planned' : pct < -5 ? '↓ Under planned' : '✓ On target';
+      return `<span class="diff-badge ${cls}">${sign}${pct}% ${label}</span>`;
+    }
+    function barWidths(p, l) {
+      const mx = Math.max(p, l, 1);
+      return { pb: Math.round((p/mx)*100), lb: Math.round((l/mx)*100) };
+    }
+
+    function kpiCard(icon, label, p, l, unit, liveFillClass) {
+      const pct = diffPct(p, l);
+      const bw  = barWidths(p, l);
+      return `
+        <div class="cmp-kpi">
+          <div class="cmp-kpi-icon">${icon}</div>
+          <div class="cmp-kpi-label">${label}</div>
+          <div class="cmp-row">
+            <div class="cmp-col">
+              <div class="cmp-col-label">Planned</div>
+              <div class="cmp-col-val">${fmt(p)} <small style="font-size:0.65rem;color:var(--muted2)">${unit}</small></div>
+              <div class="cmp-track"><div class="cmp-fill fill-planned" style="width:${bw.pb}%"></div></div>
+            </div>
+            <div class="cmp-col">
+              <div class="cmp-col-label">Live</div>
+              <div class="cmp-col-val">${fmt(l)} <small style="font-size:0.65rem;color:var(--muted2)">${unit}</small></div>
+              <div class="cmp-track"><div class="cmp-fill ${liveFillClass}" style="width:${bw.lb}%"></div></div>
+            </div>
+          </div>
+          ${diffBadge(pct)}
+        </div>`;
+    }
+
+    document.getElementById('kpiStrip').innerHTML =
+      kpiCard('⚡', 'Electricity', totPE, totLE, 'units', 'fill-live-e') +
+      kpiCard('💧', 'Water',       totPW, totLW, 'L',     'fill-live-w') +
+      kpiCard('🏫', 'Rooms',       totPR, totLR, 'rooms', 'fill-live-r');
+
+    /* ── Chart data ── */
+    let labels, pElec, lElec, pWater, lWater, pRooms, lRooms, devLabels, eDev, wDev, rDev;
+
+    if (block === 'ALL') {
+      labels   = blocks.map(b => 'Block ' + b);
+      pElec    = blocks.map(b => summary[b].total_planned_elec);
+      lElec    = blocks.map(b => summary[b].total_live_elec);
+      pWater   = blocks.map(b => summary[b].total_planned_water);
+      lWater   = blocks.map(b => summary[b].total_live_water);
+      pRooms   = blocks.map(b => summary[b].total_planned_rooms);
+      lRooms   = blocks.map(b => summary[b].total_live_rooms);
+      devLabels = labels;
+      eDev     = blocks.map(b => summary[b].avg_elec_diff);
+      wDev     = blocks.map(b => summary[b].avg_water_diff);
+      rDev     = blocks.map(b => summary[b].avg_rooms_diff);
+    } else {
+      labels   = matches.map((m, i) => m.date + (m.slot && m.slot !== 'nan' ? ' · ' + m.slot : ''));
+      pElec    = matches.map(m => m.planned_elec);
+      lElec    = matches.map(m => m.live_elec);
+      pWater   = matches.map(m => m.planned_water);
+      lWater   = matches.map(m => m.live_water);
+      pRooms   = matches.map(m => m.planned_rooms);
+      lRooms   = matches.map(m => m.live_rooms);
+      devLabels = labels;
+      eDev     = matches.map(m => m.elec_diff_pct);
+      wDev     = matches.map(m => m.water_diff_pct);
+      rDev     = matches.map(m => m.rooms_diff_pct);
+    }
+
+    function groupedBar(canvasId, pData, lData, pColor, lColor, pLabel, lLabel) {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      return new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label: pLabel || 'Planned', data: pData, backgroundColor: pColor+'44', borderColor: pColor, borderWidth: 2, borderRadius: 6 },
+            { label: lLabel || 'Live',    data: lData, backgroundColor: lColor+'99', borderColor: lColor, borderWidth: 2, borderRadius: 6 }
+          ]
+        },
+        options: baseOpts()
+      });
+    }
+
+    charts.elec  = groupedBar('chartElec',  pElec,  lElec,  C.indigo, C.coral);
+    charts.water = groupedBar('chartWater', pWater, lWater, C.indigo, C.teal);
+    charts.rooms = groupedBar('chartRooms', pRooms, lRooms, C.indigo, C.coral);
+
+    const devCtx = document.getElementById('chartDev').getContext('2d');
+    charts.dev = new Chart(devCtx, {
+      type: 'bar',
+      data: {
+        labels: devLabels,
+        datasets: [
+          { label:'Electricity Δ%', data:eDev, backgroundColor:C.coral+'88',  borderColor:C.coral,  borderWidth:2, borderRadius:5 },
+          { label:'Water Δ%',       data:wDev, backgroundColor:C.teal+'88',   borderColor:C.teal,   borderWidth:2, borderRadius:5 },
+          { label:'Rooms Δ%',       data:rDev, backgroundColor:C.indigo+'88', borderColor:C.indigo, borderWidth:2, borderRadius:5 },
+        ]
+      },
+      options: baseOpts(v => v + '%')
+    });
+
+    renderTable(matches);
+  }
+
+  function renderEmptyCharts() {
+    ['chartElec','chartWater','chartRooms','chartDev'].forEach(id => {
+      const ctx = document.getElementById(id).getContext('2d');
+      charts[id] = new Chart(ctx, {
+        type:'bar', data:{labels:['No data'],datasets:[{data:[0],backgroundColor:'#e6f5f0',borderColor:'#c8e8de',borderWidth:1}]},
+        options:{ ...baseOpts(), plugins:{legend:{display:false}} }
+      });
+    });
+    document.getElementById('tableBody').innerHTML = `
+      <div class="empty-state">
+        <div class="emoji">📭</div>
+        <strong>No matched entries</strong>
+        <p>Add a <a href="/planned-entry">Planned</a> + <a href="/live-entry">Live</a> entry for the same block, date &amp; slot.</p>
+      </div>`;
+  }
+
+  function pill(sev, val) {
+    const cls  = sev === 'high' ? 'pill-high' : sev === 'medium' ? 'pill-medium' : 'pill-ok';
+    const sign = val > 0 ? '+' : '';
+    return `<span class="pill ${cls}">${sign}${val}%</span>`;
+  }
+
+  function renderTable(rows) {
+    const body = document.getElementById('tableBody');
+    if (!rows.length) {
+      body.innerHTML = `<div class="empty-state"><div class="emoji">📭</div><strong>No matched entries</strong><p>Add a <a href="/planned-entry">Planned</a> + <a href="/live-entry">Live</a> entry for the same block, date &amp; slot.</p></div>`;
+      return;
+    }
+    body.innerHTML = `
+      <table class="match-table">
+        <thead>
+          <tr>
+            <th>Block</th><th>Date</th><th>Time Slot</th>
+            <th>P.Rooms</th><th>L.Rooms</th><th>Rooms Δ</th>
+            <th>P.Elec</th><th>L.Elec</th><th>Elec Δ</th>
+            <th>P.Water</th><th>L.Water</th><th>Water Δ</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(m => `
+            <tr>
+              <td><strong>Block ${m.building}</strong></td>
+              <td>${m.date}</td>
+              <td style="font-size:0.76rem;color:var(--muted2)">${m.slot && m.slot !== 'nan' ? m.slot : '—'}</td>
+              <td>${m.planned_rooms}</td><td>${m.live_rooms}</td>
+              <td>${pill(m.rooms_severity, m.rooms_diff_pct)}</td>
+              <td>${fmt(m.planned_elec)}</td><td>${fmt(m.live_elec)}</td>
+              <td>${pill(m.elec_severity, m.elec_diff_pct)}</td>
+              <td>${fmt(m.planned_water)}</td><td>${fmt(m.live_water)}</td>
+              <td>${pill(m.water_severity, m.water_diff_pct)}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  /* ─── Boot ─── */
+  window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('mainContent').style.display  = 'block';
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Campus — Planned Entry</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<!-- Sidebar -->
+{% include 'sidebar.html' %}
+
+<!-- Main -->
+<main class="main" id="mainContent" style="display:none">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Resource Dashboard</div>
+      <div class="page-sub">Campus-wide energy &amp; space analytics</div>
+    </div>
+    <div class="live-badge"><div class="live-dot"></div> Live Data</div>
+  </div>
+  <div class="chart-card full">
+
+  <div class="chart-hdr">
+    <div class="chart-title">📅 Planned Resource Entry</div>
+    <span class="chart-tag tag-coral">Input</span>
+  </div>
+
+  <form method="POST">
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+
+      <div>
+        <label>Building</label>
+        <select name="building" style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border);">
+          <option value="A">A Block</option>
+          <option value="B">B Block</option>
+          <option value="C">C Block</option>
+          <option value="D">D Block</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Rooms Occupied</label>
+        <input type="number" name="rooms" required
+          style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border);">
+      </div>
+
+      <div>
+        <label>Time Slot</label>
+        <select name="time_slot"
+          style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border);">
+            <option value="9:10 - 10:00">9:10 - 10:00</option>
+            <option value="10:05 - 10:55">10:05 - 10:55</option>
+            <option value="11:00 - 11:50">11:00 - 11:50</option>
+            <option value="11:50 - 12:40">11:50 - 12:40</option>
+            <option value="12:40 - 1:30">12:40 - 1:30</option>
+            <option value="1:30 - 2:20">1:30 - 2:20</option>
+            <option value="2:20 - 3:10">2:20 - 3:10</option>
+            <option value="3:10 - 4:00">3:10 - 4:00</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Date</label>
+        <input type="date" name="date" required
+          style="width:100%; padding:10px; border-radius:10px; border:1px solid var(--border);">
+      </div>
+
+    </div>
+
+    <button type="submit"
+      style="margin-top:20px; padding:12px 18px; border:none; border-radius:12px;
+             background:var(--coral); color:white; font-weight:600; cursor:pointer;">
+      Generate Plan
+    </button>
+
+  </form>
+
+{% if plan %}
+<div style="
+  margin-top:20px;
+  padding:20px;
+  border-radius:14px;
+  background:white;
+  border:1px solid var(--border);
+  box-shadow:0 6px 18px rgba(0,0,0,0.05);
+">
+
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+    <h3 style="margin:0;">📊 Plan Summary</h3>
+    <span style="
+      background:#ffe9e4;
+      color:#ff6b4a;
+      padding:6px 12px;
+      border-radius:20px;
+      font-size:12px;
+      font-weight:600;
+    ">
+      {{ plan.building }} Block
+    </span>
+  </div>
+
+  <!-- Grid Stats -->
+  <div style="
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:15px;
+    margin-bottom:15px;
+  ">
+
+    <div style="padding:15px; border:1px solid var(--border); border-radius:10px; text-align:center;">
+      <div style="font-size:22px; font-weight:700;">{{ plan.planned_rooms }}</div>
+      <div style="font-size:12px; color:gray;">Rooms Used</div>
+    </div>
+
+    <div style="padding:15px; border:1px solid var(--border); border-radius:10px; text-align:center;">
+      <div style="font-size:22px; font-weight:700;">{{ plan.utilization }}%</div>
+      <div style="font-size:12px; color:gray;">Utilization</div>
+    </div>
+
+    <div style="padding:15px; border:1px solid var(--border); border-radius:10px; text-align:center;">
+      <div style="font-size:22px; font-weight:700;">{{ plan.total_rooms }}</div>
+      <div style="font-size:12px; color:gray;">Total Rooms</div>
+    </div>
+
+  </div>
+
+  <!-- Electricity + Water -->
+  <div style="
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
+    margin-bottom:15px;
+  ">
+
+    <div style="
+      padding:15px;
+      border-radius:10px;
+      background:#f5fff9;
+      border:1px solid #cceedd;
+    ">
+      ⚡ <strong>{{ plan.expected_electricity }}</strong> units<br>
+      <span style="font-size:12px; color:gray;">Expected Electricity</span>
+    </div>
+
+    <div style="
+      padding:15px;
+      border-radius:10px;
+      background:#eef6ff;
+      border:1px solid #cfe3ff;
+    ">
+      💧 <strong>{{ plan.expected_water }}</strong> liters<br>
+      <span style="font-size:12px; color:gray;">Expected Water</span>
+    </div>
+
+  </div>
+
+  <!-- Date + Slot -->
+  <div style="font-size:13px; color:gray; margin-bottom:10px;">
+    📅 {{ plan.date }} &nbsp; | &nbsp; ⏰ Slot {{ plan.slot }}
+  </div>
+
+  <!-- Confirm Button -->
+  <form method="POST">
+    <input type="hidden" name="building" value="{{ plan.building }}">
+    <input type="hidden" name="rooms" value="{{ plan.planned_rooms }}">
+    <input type="hidden" name="date" value="{{ plan.date }}">
+    <input type="hidden" name="time_slot" value="{{ plan.slot }}">
+    <input type="hidden" name="confirmed" value="1">
+
+    <button type="submit" style="
+      width:100%;
+      padding:12px;
+      border:none;
+      border-radius:10px;
+      background:#2e9e6b;
+      color:white;
+      font-weight:600;
+      cursor:pointer;
+    ">
+      ✅ Confirm & Save
+    </button>
+  </form>
+
+</div>
+{% endif %}
+
+</div>
+  
+
+</main>
+
+<!-- Loading -->
+<div id="loadingState" style="margin-left:230px">
+  <div class="spinner"></div>
+  <div style="color:#4a8070;font-size:0.82rem">Loading campus data…</div>
+</div>
+
+<script>
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('mainContent').style.display  = 'block';
+</script>
+</body>
+</html>

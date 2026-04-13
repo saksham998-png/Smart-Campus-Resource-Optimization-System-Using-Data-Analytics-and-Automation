@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Campus — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    /* Generalized form field styling */
+    .form-field {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.95rem;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .form-actions {
+      margin-top: 20px;
+    }
+    .btn-submit {
+      padding: 12px 18px;
+      border: none;
+      border-radius: 12px;
+      background: var(--indigo);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+{% include 'sidebar.html' %}
+
+<!-- Main -->
+<main class="main" id="mainContent" style="display:none">
+  <div class="topbar">
+    <div>
+      <div class="page-title">Resource Dashboard</div>
+      <div class="page-sub">Campus-wide energy &amp; space analytics</div>
+    </div>
+    <div class="live-badge"><div class="live-dot"></div> Live Data</div>
+  </div>
+
+  <div class="chart-card full">
+    <div class="chart-hdr">
+      <div class="chart-title">⚡ Live Usage Entry</div>
+      <span class="chart-tag tag-indigo">Live Input</span>
+    </div>
+
+    <form method="POST">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Building</label>
+          <select name="building" class="form-field">
+            <option value="A">A Block</option>
+            <option value="B">B Block</option>
+            <option value="C">C Block</option>
+            <option value="D">D Block</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Rooms Actually Used</label>
+          <input type="number" name="rooms" required class="form-field">
+        </div>
+
+        <div class="form-group">
+          <label>Total Electricity Consumed (units)</label>
+          <input type="number" name="electricity" required class="form-field">
+        </div>
+
+        <div class="form-group">
+          <label>Total Water Consumed (liters)</label>
+          <input type="number" name="water" required class="form-field">
+        </div>
+
+        <div class="form-group">
+          <label>Day Type</label>
+          <select name="day_type" class="form-field">
+            <option value="normal">Normal Day</option>
+            <option value="event">Event Day</option>
+            <option value="exam">Exam Day</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Time Slot</label>
+          <select name="time_slot" class="form-field">
+            <option value="9:10 - 10:00">9:10 - 10:00</option>
+            <option value="10:05 - 10:55">10:05 - 10:55</option>
+            <option value="11:00 - 11:50">11:00 - 11:50</option>
+            <option value="11:50 - 12:40">11:50 - 12:40</option>
+            <option value="12:40 - 1:30">12:40 - 1:30</option>
+            <option value="1:30 - 2:20">1:30 - 2:20</option>
+            <option value="2:20 - 3:10">2:20 - 3:10</option>
+            <option value="3:10 - 4:00">3:10 - 4:00</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Date</label>
+          <input type="date" name="date" required class="form-field">
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-submit">Submit Live Data</button>
+      </div>
+    </form>
+  </div>
+</main>
+
+<!-- Loading -->
+<div id="loadingState" style="margin-left:230px">
+  <div class="spinner"></div>
+  <div style="color:#4a8070;font-size:0.82rem">Loading campus data…</div>
+</div>
+
+<script>
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('mainContent').style.display  = 'block';
+</script>
+</body>
+</html>

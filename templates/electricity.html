@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Campus — Electricity Analytics</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<!-- ── Sidebar ── -->
+{% include 'sidebar.html' %}
+
+<!-- ── Main ── -->
+<main class="main" id="mainContent" style="display:none">
+
+  <div class="topbar">
+    <div>
+      <div class="page-title" id="pageTitle">Electricity Analytics</div>
+      <div class="page-sub" id="pageSub">Select a block from the sidebar to explore its data</div>
+    </div>
+    <div class="live-badge"><div class="live-dot"></div> Live Data</div>
+  </div>
+
+  <div class="section-label">Campus overview</div>
+  <div class="kpi-grid">
+    <div class="kpi-card c-coral"><div class="kpi-icon">⚡</div><div class="kpi-label">Total Campus</div><div class="kpi-value" id="ovTotal">—</div><div class="kpi-sub">units consumed</div></div>
+    <div class="kpi-card c-indigo"><div class="kpi-icon">📊</div><div class="kpi-label">Avg Utilization</div><div class="kpi-value" id="ovUtil">—</div><div class="kpi-sub">all buildings</div></div>
+    <div class="kpi-card c-teal"><div class="kpi-icon">🌱</div><div class="kpi-label">Most Efficient</div><div class="kpi-value" id="ovEfficient">—</div><div class="kpi-sub">lowest usage</div></div>
+    <div class="kpi-card c-amber"><div class="kpi-icon">🏆</div><div class="kpi-label">Highest Usage</div><div class="kpi-value" id="ovHighest">—</div><div class="kpi-sub">peak consumer</div></div>
+  </div>
+
+  <div id="blockDetail">
+
+    <div class="block-divider">
+      <div class="block-divider-line"></div>
+      <div class="block-divider-label" id="blockLabel">⚡ Block A Detail</div>
+      <div class="block-divider-line"></div>
+    </div>
+
+    <div class="det-kpi-grid">
+      <div class="det-kpi coral"><div class="dl">Total Usage</div><div class="dv" id="detTotal">—</div><div class="ds">units consumed</div></div>
+      <div class="det-kpi indigo"><div class="dl">Avg / Day</div><div class="dv" id="detAvg">—</div><div class="ds">avg units</div></div>
+      <div class="det-kpi amber"><div class="dl">Wastage Events</div><div class="dv" id="detWastage">—</div><div class="ds">anomalies detected</div></div>
+      <div class="det-kpi teal"><div class="dl">Utilization</div><div class="dv" id="detUtil">—</div><div class="ds">occupancy rate</div></div>
+    </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <div class="chart-hdr"><div class="chart-title">⚡ Weekly Usage</div><span class="chart-tag tag-coral">Units</span></div>
+        <canvas id="blockBarChart"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-hdr"><div class="chart-title">📈 Utilization Trend</div><span class="chart-tag tag-indigo">Weekly</span></div>
+        <canvas id="blockLineChart"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-hdr"><div class="chart-title">🏢 vs Campus Average</div><span class="chart-tag tag-coral">Comparison</span></div>
+        <canvas id="blockCompareChart"></canvas>
+      </div>
+      <div class="chart-card">
+        <div class="chart-hdr"><div class="chart-title">🔍 Anomaly Breakdown</div><span class="chart-tag tag-amber">XAI</span></div>
+        <canvas id="blockDonutChart"></canvas>
+      </div>
+    </div>
+
+    <div class="xai-divider">
+      <div class="xai-divider-line"></div>
+      <div class="xai-divider-label">⚠️ XAI Wastage Detection</div>
+      <div class="xai-divider-line"></div>
+    </div>
+
+    <div class="wkpi-grid">
+      <div class="wkpi-card w-red"><div class="kpi-icon">⚠️</div><div class="kpi-label">Total Wastage</div><div class="wkpi-val-red" id="wxTotal">—</div><div class="kpi-sub">events in this block</div></div>
+      <div class="wkpi-card w-red"><div class="kpi-icon">🔴</div><div class="kpi-label">Sensor Glitches</div><div class="wkpi-val-red" id="wxGlitch">—</div><div class="kpi-sub">need maintenance</div></div>
+      <div class="wkpi-card w-amber"><div class="kpi-icon">🟡</div><div class="kpi-label">Campus Events</div><div class="wkpi-val-amber" id="wxEvent">—</div><div class="kpi-sub">valid decisions</div></div>
+      <div class="wkpi-card w-indigo"><div class="kpi-icon">📋</div><div class="kpi-label">Wasted Units</div><div class="wkpi-val-indigo" id="wxUnits">—</div><div class="kpi-sub">in this block</div></div>
+    </div>
+
+    <div class="xai-legend">
+      <div class="xai-legend-item"><div class="legend-dot" style="background:var(--red)"></div><span><strong style="color:var(--red)">Sensor Glitch</strong> — occupancy &lt;65%, high usage → maintenance needed</span></div>
+      <div class="xai-legend-item"><div class="legend-dot" style="background:var(--amber)"></div><span><strong style="color:#8a6800">Campus Event</strong> — occupancy ≥65% → valid AI decision</span></div>
+    </div>
+    <div class="action-grid" id="actionGrid"></div>
+
+  </div><!-- end #blockDetail -->
+
+</main>
+
+<!-- Loading -->
+<div id="loadingState" style="margin-left:250px">
+  <div class="spinner"></div>
+  <div style="color:#4a8070;font-size:0.82rem">Loading campus data…</div>
+</div>
+
+<script>
+  const C = { coral:'#e8441a', indigo:'#2d3acc', teal:'#1a8060', amber:'#f0b800', red:'#d43a1a' };
+  let allData = null;
+  let charts  = {};
+
+  /* ── Sidebar toggle — each section independent ── */
+  function toggleSection(section) {
+    const subnav = document.getElementById('subnav-'+section);
+    const chev   = document.getElementById('chev-'+section);
+    subnav.classList.toggle('hidden');
+    chev.style.transform = subnav.classList.contains('hidden') ? 'rotate(-90deg)' : '';
+  }
+
+  function grad(ctx, hex) {
+    const g = ctx.createLinearGradient(0,0,0,220);
+    g.addColorStop(0, hex+'bb'); g.addColorStop(1, hex+'11'); return g;
+  }
+  function fmt(n) { return Number(n).toLocaleString(); }
+  function destroyCharts() { Object.values(charts).forEach(c => c && c.destroy()); charts = {}; }
+
+  const baseOpts = () => ({
+    responsive:true,
+    plugins:{
+      legend:{display:false},
+      tooltip:{ backgroundColor:'#fff', borderColor:'#c8e8de', borderWidth:1, padding:10, cornerRadius:8, titleColor:'#0f2d25', bodyColor:'#4a8070', titleFont:{family:'DM Sans'}, bodyFont:{family:'DM Sans'} }
+    },
+    scales:{
+      x:{grid:{color:'rgba(26,128,96,0.06)'},ticks:{color:'#4a8070',font:{family:'DM Sans',size:12}}},
+      y:{grid:{color:'rgba(26,128,96,0.06)'},ticks:{color:'#4a8070',font:{family:'DM Sans',size:12}}}
+    }
+  });
+
+  function switchBlock(block) {
+    if (!allData) return;
+
+    /* Highlight active block in sidebar */
+    document.querySelectorAll('#subnav-elec .block-item').forEach(el => {
+      el.classList.toggle('active-elec', el.dataset.block === block);
+    });
+
+    document.getElementById('pageTitle').textContent  = `Block ${block}`;
+    document.getElementById('pageSub').textContent    = `Electricity analytics for this building`;
+    document.getElementById('blockLabel').textContent = `⚡ Block ${block} Detail`;
+    document.getElementById('blockDetail').style.display = 'block';
+
+    renderBlockDetail(block);
+  }
+
+  function renderBlockDetail(block) {
+    const d     = allData;
+    const bIdx  = d.buildings.indexOf(block);
+    const usage = d.electricity[bIdx] || 0;
+    const util  = d.utilization[bIdx] || 0;
+    const campusAvg = Math.round(d.electricity.reduce((a,b)=>a+b,0) / d.electricity.length);
+
+    document.getElementById('detTotal').textContent   = fmt(usage);
+    document.getElementById('detAvg').textContent     = fmt(Math.round(usage/30));
+    document.getElementById('detUtil').textContent    = util.toFixed(1)+'%';
+
+    const bWastage = (d.building_wastage_counts||{})[block] || 0;
+    const bGlitch  = (d.building_glitch_counts ||{})[block] || 0;
+    const bEvent   = Math.max(0, bWastage - bGlitch);
+    const bWUnits  = (d.building_wastage_units ||{})[block] || 0;
+
+    document.getElementById('detWastage').textContent = bWastage;
+    document.getElementById('wxTotal').textContent    = bWastage;
+    document.getElementById('wxGlitch').textContent   = bGlitch;
+    document.getElementById('wxEvent').textContent    = bEvent;
+    document.getElementById('wxUnits').textContent    = fmt(bWUnits);
+
+    destroyCharts();
+
+    const weeks      = ['Week 1','Week 2','Week 3','Week 4'];
+    const weeklyVals = [0.22,0.27,0.18,0.33].map(r => Math.round(usage*r));
+    const utilVals   = [0.88,0.93,0.97,1].map(r => +(util*r).toFixed(1));
+
+    const bc = document.getElementById('blockBarChart').getContext('2d');
+    charts.bar = new Chart(bc, { type:'bar', data:{labels:weeks, datasets:[{data:weeklyVals, backgroundColor:grad(bc,C.coral), borderColor:C.coral, borderWidth:2, borderRadius:8}]}, options:baseOpts() });
+
+    const lc = document.getElementById('blockLineChart').getContext('2d');
+    charts.line = new Chart(lc, { type:'line', data:{labels:weeks, datasets:[{data:utilVals, borderColor:C.indigo, backgroundColor:grad(lc,C.indigo), borderWidth:2.5, pointBackgroundColor:C.indigo, pointRadius:5, tension:0.4, fill:true}]}, options:baseOpts() });
+
+    const cc = document.getElementById('blockCompareChart').getContext('2d');
+    charts.compare = new Chart(cc, { type:'bar', data:{labels:[`Block ${block}`,'Campus Avg'], datasets:[{data:[usage,campusAvg], backgroundColor:[C.coral+'bb',C.teal+'bb'], borderColor:[C.coral,C.teal], borderWidth:2, borderRadius:8}]}, options:baseOpts() });
+
+    const dc = document.getElementById('blockDonutChart').getContext('2d');
+    charts.donut = new Chart(dc, { type:'doughnut', data:{labels:['Sensor Glitch','Campus Event'], datasets:[{data:[bGlitch||1, bEvent||0], backgroundColor:['rgba(212,58,26,0.75)','rgba(240,184,0,0.75)'], borderColor:[C.red,C.amber], borderWidth:2, hoverOffset:10}]}, options:{ cutout:'65%', plugins:{ legend:{position:'bottom',labels:{color:'#4a8070',font:{family:'DM Sans'},padding:14}}, tooltip:{backgroundColor:'#fff',borderColor:'#c8e8de',borderWidth:1,padding:10,cornerRadius:8,bodyFont:{family:'DM Sans'}} } } });
+
+    const grid = document.getElementById('actionGrid');
+    grid.innerHTML = '';
+    const alerts = (d.wastage_alerts||[]).filter(a => a.building === block);
+    if (alerts.length > 0) {
+      alerts.forEach(alert => {
+        const isGlitch = alert.type === 'sensor_glitch';
+        const card = document.createElement('div');
+        card.className = `action-card ${isGlitch?'glitch':'event'}`;
+        card.innerHTML = `
+          <div><span class="action-badge ${isGlitch?'badge-glitch':'badge-event'}">${isGlitch?'🔴 Sensor Glitch':'🟡 Campus Event'}</span></div>
+          <div class="action-info">
+            <div class="action-building">Block ${alert.building}</div>
+            <div class="action-meta">📅 ${alert.date} &nbsp;|&nbsp; ⚡ ${fmt(alert.units)} units</div>
+            <div class="action-reason">${alert.reason}</div>
+            <div class="action-rec"><span style="font-size:13px;flex-shrink:0">${isGlitch?'🔧':'✅'}</span>${alert.action}</div>
+          </div>`;
+        grid.appendChild(card);
+      });
+    } else {
+      grid.innerHTML = `<div style="grid-column:1/-1;padding:16px;background:rgba(26,128,96,0.05);border:1px solid rgba(26,128,96,0.2);border-radius:12px;font-size:0.85rem;color:var(--teal);">✅ No wastage anomalies for Block ${block}.</div>`;
+    }
+  }
+
+  fetch('/api/electricity-data')
+    .then(r => r.json())
+    .then(d => {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('mainContent').style.display  = 'block';
+      allData = d;
+
+      /* Auto-load block from URL param (?block=A), else default to first block */
+      const urlBlock = new URLSearchParams(window.location.search).get('block');
+      switchBlock(urlBlock && d.buildings.includes(urlBlock) ? urlBlock : d.buildings[0]);
+
+      document.getElementById('ovTotal').textContent     = fmt(d.total_electricity);
+      document.getElementById('ovUtil').textContent      = (d.utilization.reduce((a,b)=>a+b,0)/d.utilization.length).toFixed(1)+'%';
+      document.getElementById('ovEfficient').textContent = 'Block '+d.most_efficient_building;
+      document.getElementById('ovHighest').textContent   = 'Block '+d.highest_usage_building;
+    })
+    .catch(() => {
+      document.getElementById('loadingState').innerHTML = '<div style="color:#d43a1a">⚠️ Failed to load data. Please refresh.</div>';
+    });
+</script>
+</body>
+</html>
